@@ -7,8 +7,7 @@ const getConnection = require('./connection');
 const userShcema = require('./userSchema')
 const dataBase = new getConnection();
 
-// Update avatar route
-router.post("/update/", async (req, res) => {
+router.post("/updatePhoto", multer().single('avatar'), async (req, res) => {
     console.log(req.file);
 
     res.status(201).json({ message: "Update realizado com sucesso" })
