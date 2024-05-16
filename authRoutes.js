@@ -72,7 +72,6 @@ router.post('/register', async (req, res) => {
 
         await newUser.save();
 
-        await dataBase.close();
         res.status(201).json({ message: "Usuário cadastrado com sucesso", isRegistered: true, user: newUser });
     } catch (error) {
         console.error("Erro ao registrar usuário:", error);

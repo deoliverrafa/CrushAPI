@@ -9,6 +9,7 @@ router.get("/:id", async (req, res) => {
 
     const id = req.params.id
     await dataBase.connect()
+    
     if (!id) {
         return res.status(400).json({ message: "Id não especificado" })
     }
