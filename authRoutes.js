@@ -41,6 +41,8 @@ router.post('/register', async (req, res) => {
     try {
         const { nickname, email, password, birthdaydata, campus } = req.body;
 
+        console.log(req.body);
+
         if (!email || !nickname || !password || !birthdaydata || !campus) {
             return res.status(400).send({ message: "Preencha todos os campos" });
         }
@@ -50,14 +52,14 @@ router.post('/register', async (req, res) => {
         // Verificar se já existe um usuário com o mesmo nickname
         const existingUser = await userShcema.findOne({ $or: [{ email }, { nickname }] });
 
-        if (existingUser.nickname == nickname) {
-            return res.status(400).send({ message: "Nickname já está em uso. Por favor, escolha outro." });
+        if (existingUser != null) {
+            if (existingUser.nickname == nickname) {
+                return res.status(400).send({ message: "Nickname já está em uso. Por favor, escolha outro." });
+            }
+            if (existingUser.email == email) {
+                return res.status(400).send({ message: "Email já está em uso" })
+            }
         }
-
-        if (existingUser.email == email) {
-            return res.status(400).send({message: "Email já está em uso"})
-        }
-
         // Criptografar a senha
         const hashedPassword = await bcrypt.hash(password, 10);
 
