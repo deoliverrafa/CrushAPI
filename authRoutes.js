@@ -1,14 +1,14 @@
-const express = require('express')
-const router = express.Router()
+import express from "express"
+import bcrypt from "bcrypt";
+import userSchema from "./userSchema.js"
+import getConnection from "./connection.js";
 
-const getConnection = require('./connection');
-const userShcema = require('./userSchema')
+const router = express.Router()
 const dataBase = new getConnection();
-const bcrypt = require('bcrypt');
 
 router.post('/login', async (req, res) => {
     try {
-
+        
         const { nickname, password } = req.body;
 
         if (!nickname || !password) {
@@ -17,7 +17,7 @@ router.post('/login', async (req, res) => {
 
         await dataBase.connect();
 
-        const userFinded = await userShcema.findOne({ nickname });
+        const userFinded = await userSchema.findOne({ nickname });
 
         if (!userFinded) {
             return res.status(400).json({ message: "Nickname não encontrado", logged: false });
@@ -50,7 +50,7 @@ router.post('/register', async (req, res) => {
         await dataBase.connect();
 
         // Verificar se já existe um usuário com o mesmo nickname
-        const existingUser = await userShcema.findOne({ $or: [{ email }, { nickname }] });
+        const existingUser = await userSchema.findOne({ $or: [{ email }, { nickname }] });
 
         if (existingUser != null) {
             if (existingUser.nickname == nickname) {
@@ -64,7 +64,7 @@ router.post('/register', async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Criar um novo usuário com a senha criptografada
-        const newUser = new userShcema({
+        const newUser = new userSchema({
             nickname,
             email,
             password: hashedPassword,
@@ -81,4 +81,4 @@ router.post('/register', async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router

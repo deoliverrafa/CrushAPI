@@ -1,8 +1,8 @@
-const express = require('express')
-const router = express.Router()
+import express from 'express';
+import getConnection from './connection.js';
+import userSchema from './userSchema.js';
 
-const getConnection = require('./connection');
-const userShcema = require('./userSchema')
+const router = express.Router()
 const dataBase = new getConnection();
 
 router.get("/:id", async (req, res) => {
@@ -14,7 +14,7 @@ router.get("/:id", async (req, res) => {
         return res.status(400).json({ message: "Id não especificado" })
     }
 
-    const userFinded = await userShcema.findOne({ _id: id })
+    const userFinded = await userSchema.findOne({ _id: id })
 
     if (!userFinded) {
         return res.status(400).json({ message: "Usuário não encontrado" })
@@ -23,4 +23,4 @@ router.get("/:id", async (req, res) => {
     res.status(200).json({ userFinded })
 })
 
-module.exports = router;
+export default router;

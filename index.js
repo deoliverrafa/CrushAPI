@@ -1,15 +1,15 @@
-
 // Dependêncies imports
-const express = require('express')
+import express from 'express'
 
 // Route Imports
-const userRoutes = require('./userRoutes')
-const authRoutes = require('./authRoutes')
-const profileRoutes = require('./profileRoutes')
+import userRoutes from "./userRoutes.js"
+import authRoutes from "./authRoutes.js"
+import profileRoutes from "./profileRoutes.js"
+import postRoutes from "./postRoutes.js"
 
 // Ambient var
 const app = express();
-const cors = require('cors');
+import cors from "cors"
 
 // app.use(cors({
 //     origin: [''],
@@ -26,7 +26,7 @@ app.use(cors())
 app.use('/user', userRoutes)
 app.use('/auth', authRoutes)
 app.use('/profile', profileRoutes)
-
+app.use('/post', postRoutes)
 
 
 const PORT = process.env.PORT || 4040;
