@@ -109,7 +109,7 @@ router.get('/get/:id/:skip/:limit', async (req, res) => {
         const limitValue = parseInt(limit);
 
         // Buscando os posts no banco de dados
-        const posts = await postSchema.find({ userId: id }).skip(skipValue).limit(limitValue);
+        const posts = await postSchema.find().skip(skipValue).limit(limitValue);
 
         if (!posts) {
             return res.status(500).json({ message: "Ocorreu um erro ao recuperar os posts. Tente novamente." });
