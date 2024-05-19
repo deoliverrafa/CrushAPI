@@ -56,9 +56,9 @@ router.post('/publish', upload.single('photo'), async (req, res) => {
                 photoURL
             };
 
-            const resultPost = await postSchema.create(postToSave);
+            await postSchema.create(postToSave);
 
-            res.status(200).json({ message: 'Dados recebidos com sucesso!', post: resultPost });
+            res.status(200).json({ message: 'Dados recebidos com sucesso!', posted: true });
         };
 
         // Verificar se a foto foi enviada
