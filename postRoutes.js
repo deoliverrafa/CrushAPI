@@ -57,7 +57,6 @@ router.post('/publish/:id', upload.single('photo'), async (req, res) => {
                     console.error('Erro ao realizar upload da imagem:', error);
                     return res.status(500).json({ message: 'Erro ao realizar upload da imagem' });
                 }
-                console.log('Resultado do upload da imagem', result);
                 savePost(result.url);
             });
 
