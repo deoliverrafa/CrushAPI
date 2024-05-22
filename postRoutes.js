@@ -1,12 +1,10 @@
-import { v2 as cloudinary } from 'cloudinary';
+import cloudinary from './cloudinary.js';
+import userSchema from "./userSchema.js";
 import express from 'express';
 import multer from 'multer';
 import postSchema from './postSchema.js';
 import getConnection from './connection.js';
-import dotenv from 'dotenv';
 import { Readable } from 'stream';
-
-dotenv.config();
 
 const router = express.Router();
 const dataBase = new getConnection();
@@ -14,26 +12,12 @@ const dataBase = new getConnection();
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-// Configuração do Cloudinary
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_KEY,
-    api_secret: process.env.CLOUDINARY_SECRET
-});
-
-router.post('/publish', upload.single('photo'), async (req, res) => {
+router.post('/publish/:id', upload.single('photo'), async (req, res) => {
     try {
-        console.log('Entrei na rota');
-        const { nickname, email, campus, content, references, isAnonymous } = req.body;
+        const userId = req.params.id;
+        const { nickname, email, campus, content, references, isAnonymous, avatar } = req.body;
         const photo = req.file;
 
-        console.log(nickname);
-        console.log(email);
-        console.log(campus);
-        console.log(content);
-        console.log(references);
-        console.log(isAnonymous);
-        console.log(photo);
 
         if (!content) {
             return res.status(400).json({ message: 'Insira um conteúdo na publicação' });
@@ -41,6 +25,10 @@ router.post('/publish', upload.single('photo'), async (req, res) => {
 
         if (isAnonymous !== 'true' && isAnonymous !== 'false') {
             return res.status(400).json({ message: 'É necessário definir o tipo da postagem' });
+        }
+
+        if (!userId) {
+            return res.status(400).json({ message: 'É necessário passar o id do usuário para postagem' })
         }
 
         await dataBase.connect();
@@ -53,7 +41,8 @@ router.post('/publish', upload.single('photo'), async (req, res) => {
                 content,
                 references,
                 isAnonymous,
-                photoURL
+                photoURL,
+                userAvatar: avatar
             };
 
             await postSchema.create(postToSave);

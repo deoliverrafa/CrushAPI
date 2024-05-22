@@ -29,6 +29,10 @@ const postSchema = new mongoose.Schema({
         type: String,
         required: false,
     },
+    userAvatar: {
+        type: String,
+        required: false,
+    },
     insertAt: {
         type: Date,
         default: () => new Date(),
