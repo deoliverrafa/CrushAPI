@@ -5,6 +5,7 @@ import multer from 'multer';
 import postSchema from './postSchema.js';
 import getConnection from './connection.js';
 import { Readable } from 'stream';
+import mongoose from 'mongoose';
 
 const router = express.Router();
 const dataBase = new getConnection();
@@ -42,7 +43,8 @@ router.post('/publish/:id', upload.single('photo'), async (req, res) => {
                 references,
                 isAnonymous,
                 photoURL,
-                userAvatar: avatar
+                userAvatar: avatar,
+                userId: new mongoose.Types.ObjectId(userId)
             };
 
             await postSchema.create(postToSave);

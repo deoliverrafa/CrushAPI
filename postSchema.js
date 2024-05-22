@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb";
 import mongoose from "mongoose"
 
 const postSchema = new mongoose.Schema({
@@ -32,6 +33,10 @@ const postSchema = new mongoose.Schema({
     userAvatar: {
         type: String,
         required: false,
+    },
+    userId: {
+        type: ObjectId,
+        required: true,
     },
     insertAt: {
         type: Date,
