@@ -34,6 +34,8 @@ router.post('/publish/:id', upload.single('photo'), async (req, res) => {
 
         await dataBase.connect();
 
+        const userFound = userSchema.findOne({ _id: userId })
+        
         const savePost = async (photoURL = null) => {
             const postToSave = {
                 nickname,
