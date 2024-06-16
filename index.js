@@ -31,7 +31,7 @@ app.use('/profile', profileRoutes)
 app.use('/post', postRoutes)
 
 
-const PORT = process.env.VERPORT || 4040;
+const PORT = process.env.PORT || 4040;
 
 app.listen(PORT, () => {
     console.log("Servidor rodando na porta", + PORT);
