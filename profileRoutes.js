@@ -59,4 +59,51 @@ router.post("/updatePhoto/:id", multer().single('avatar'), async (req, res) => {
     }
 });
 
+router.post("/changeNameCampus/:id", async (req, res) => {
+    try {
+        const { nick, campus } = req.body
+        const { id } = req.params.id
+
+        if (!nick || !campus) {
+            res.status(404).json({ message: "Campo faltando",  updated: false})
+        }
+
+        await dataBase.connect()
+
+        const userFound = await userSchema.findOneAndUpdate({
+            _id: id,
+            nickname: nick,
+            campus: campus,
+        })
+
+        if (!userFound) {
+            res.status(400).json({ message: "Erro ao procurar usuário", userFound, updated: false })
+        }
+
+        res.status(200).json({ message: "Atualizado com sucesso", updated: true })
+
+    } catch (error) {
+        console.error("Erro ao mudar nome", error)
+        res.status(500).json({ message: "Erro ao atualizar dados", error })
+    }
+})
+
+router.post("/changePassword/:id", async (req, res) => {
+    try {
+
+    } catch (error) {
+        console.error("Erro ao mudar senha", error)
+        res.status(500).json({ message: "Erro ao mudar senha", error })
+    }
+})
+
+router.post("/changeEmail/:id", async (req, res) => {
+    try {
+
+    } catch (error) {
+        console.error("Erro ao mudar email", error)
+        res.status(500).json({ message: "Erro ao atualizar dados", error })
+    }
+})
+
 export default router;
