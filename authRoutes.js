@@ -2,6 +2,7 @@ import express from "express"
 import bcrypt from "bcrypt";
 import userSchema from "./userSchema.js"
 import getConnection from "./connection.js";
+import jwt from 'jsonwebtoken'
 
 const router = express.Router()
 const dataBase = new getConnection();
@@ -29,7 +30,9 @@ router.post('/login', async (req, res) => {
             return res.status(400).json({ message: "Senha incorreta tente novamente", logged: false });
         }
 
-        res.status(202).json({ message: "Logado", logged: true, user: userFinded });
+        const token = jwt.sign({user: userFinded}, {expires: '1h'})
+        
+        res.status(202).json({token});
 
     } catch (error) {
         console.error("Erro ao fazer login:", error);
