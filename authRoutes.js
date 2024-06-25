@@ -30,7 +30,7 @@ router.post('/login', async (req, res) => {
             return res.status(400).json({ message: "Senha incorreta tente novamente", logged: false });
         }
 
-        const token = jwt.sign({user: userFinded}, {expires: '1h'})
+        const token = jwt.sign({user: userFinded})
         
         res.status(202).json({token});
 
