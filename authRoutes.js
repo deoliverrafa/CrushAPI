@@ -11,7 +11,7 @@ const dataBase = new getConnection();
 
 router.post('/login', async (req, res) => {
     try {
-        
+
         const { nickname, password } = req.body;
 
         if (!nickname || !password) {
@@ -32,9 +32,15 @@ router.post('/login', async (req, res) => {
             return res.status(400).json({ message: "Senha incorreta tente novamente", logged: false });
         }
 
-        const token = jwt.sign({user: userFinded}, process.env.JWT_SECRET, {expiresIn: '1h'})
-        
-        res.status(202).json({token});
+        const token = jwt.sign({ user: userFinded }, process.env.JWT_SECRET, { expiresIn: '1h' })
+
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'Stric',
+            maxAge: 3600000
+        })
+        res.status(202).json({message: 'Autenticado com sucesso'});
 
     } catch (error) {
         console.error("Erro ao fazer login:", error);
