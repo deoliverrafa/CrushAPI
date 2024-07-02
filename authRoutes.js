@@ -3,6 +3,8 @@ import bcrypt from "bcrypt";
 import userSchema from "./userSchema.js"
 import getConnection from "./connection.js";
 import jwt from 'jsonwebtoken'
+import dotennv from 'dotenv'
+dotennv.config()
 
 const router = express.Router()
 const dataBase = new getConnection();
