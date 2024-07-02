@@ -15,6 +15,10 @@ router.post('/login', async (req, res) => {
         const { nickname, password } = req.body;
 
         if (!nickname || !password) {
+            return res.status(400).json({message: "Insira Nome e Senha"})
+        }
+
+        if (!nickname || !password) {
             return res.status(400).json({ message: "Campo faltando", logged: false });
         }
 
