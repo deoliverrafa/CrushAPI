@@ -1,11 +1,16 @@
-import cloudinary from './cloudinary.js';
-import userSchema from "./userSchema.js";
-import express from 'express';
-import multer from 'multer';
-import postSchema from './postSchema.js';
-import getConnection from './connection.js';
 import { Readable } from 'stream';
 import mongoose from 'mongoose';
+import express from 'express';
+import multer from 'multer';
+import jwt from 'jsonwebtoken'
+
+
+// Local Imports
+import cloudinary from './cloudinary.js';
+import userSchema from "./userSchema.js";
+import postSchema from './postSchema.js';
+import getConnection from './connection.js';
+
 
 const router = express.Router();
 const dataBase = new getConnection();
@@ -13,9 +18,9 @@ const dataBase = new getConnection();
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-router.post('/publish/:id', upload.single('photo'), async (req, res) => {
+router.post('/publish/:token', upload.single('photo'), async (req, res) => {
     try {
-        const userId = req.params.id;
+        const token = req.params.token;
         const { nickname, email, campus, content, references, isAnonymous, avatar } = req.body;
         const photo = req.file;
 
@@ -28,14 +33,16 @@ router.post('/publish/:id', upload.single('photo'), async (req, res) => {
             return res.status(400).json({ message: 'É necessário definir o tipo da postagem' });
         }
 
-        if (!userId) {
+        if (!token) {
             return res.status(400).json({ message: 'É necessário passar o id do usuário para postagem' })
         }
 
         await dataBase.connect();
 
-        const userFound = userSchema.findOne({ _id: userId })
-        
+        const decodedObj = jwt.decode(token, process.env.JWT_SECRET)
+
+        const userFound = userSchema.findOne({ _id: decodedObj.user._id })
+
         const savePost = async (photoURL = null) => {
             const postToSave = {
                 nickname,
@@ -46,7 +53,7 @@ router.post('/publish/:id', upload.single('photo'), async (req, res) => {
                 isAnonymous,
                 photoURL,
                 userAvatar: avatar,
-                userId: new mongoose.Types.ObjectId(userId)
+                userId: new mongoose.Types.ObjectId(decodedObj.user._id)
             };
 
             await postSchema.create(postToSave);
@@ -80,8 +87,19 @@ router.post('/publish/:id', upload.single('photo'), async (req, res) => {
     }
 });
 
-router.get('/get/:id/:skip/:limit', async (req, res) => {
-    const { id, skip, limit } = req.params;
+router.get('/get/:token/:skip/:limit', async (req, res) => {
+    const { token, skip, limit } = req.params;
+    
+    let decodedObj;
+
+    try {
+        decodedObj = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+        if (error.name == "TokenExpiredError") {
+            res.status(403).json({ message: 'Token Expirado' })
+        }
+        res.status(403).json({ message: 'Token Inválido' })
+    }
 
     // Verificações dos parâmetros
     if (!skip || isNaN(skip)) {
@@ -90,7 +108,7 @@ router.get('/get/:id/:skip/:limit', async (req, res) => {
     if (!limit || isNaN(limit)) {
         return res.status(400).json({ message: "É necessário repassar um limit válido" });
     }
-    if (!id) {
+    if (!token) {
         return res.status(400).json({ message: "É necessário repassar um id para busca" });
     }
 
