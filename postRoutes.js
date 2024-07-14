@@ -58,7 +58,7 @@ router.post('/publish/:token', upload.single('photo'), async (req, res) => {
 
             await postSchema.create(postToSave);
 
-            res.status(200).json({ message: 'Dados recebidos com sucesso!', posted: true });
+            return res.status(200).json({ message: 'Dados recebidos com sucesso!', posted: true });
         };
 
         // Verificar se a foto foi enviada
@@ -81,7 +81,7 @@ router.post('/publish/:token', upload.single('photo'), async (req, res) => {
 
     } catch (error) {
         console.error('Error processing request:', error);
-        res.status(500).json({ error: 'Erro ao processar a solicitação' });
+        return res.status(500).json({ error: 'Erro ao processar a solicitação' });
     } finally {
 
     }
@@ -89,16 +89,16 @@ router.post('/publish/:token', upload.single('photo'), async (req, res) => {
 
 router.get('/get/:token/:skip/:limit', async (req, res) => {
     const { token, skip, limit } = req.params;
-    
+
     let decodedObj;
 
     try {
         decodedObj = jwt.verify(token, process.env.JWT_SECRET);
     } catch (error) {
         if (error.name == "TokenExpiredError") {
-            res.status(403).json({ message: 'Token Expirado' })
+            return res.status(403).json({ message: 'Token Expirado', validToken: false })
         }
-        res.status(403).json({ message: 'Token Inválido' })
+        return res.status(403).json({ message: 'Token Inválido', validToken: false })
     }
 
     // Verificações dos parâmetros
@@ -109,7 +109,7 @@ router.get('/get/:token/:skip/:limit', async (req, res) => {
         return res.status(400).json({ message: "É necessário repassar um limit válido" });
     }
     if (!token) {
-        return res.status(400).json({ message: "É necessário repassar um id para busca" });
+        return res.status(400).json({ message: "É necessário repassar um token válido para busca", validToken: false });
     }
 
     try {
@@ -125,10 +125,10 @@ router.get('/get/:token/:skip/:limit', async (req, res) => {
             return res.status(500).json({ message: "Ocorreu um erro ao recuperar os posts. Tente novamente." });
         }
 
-        res.status(200).json({ posts });
+        return res.status(200).json({ posts });
     } catch (error) {
         console.error('Erro ao recuperar posts:', error);
-        res.status(500).json({ message: "Ocorreu um erro ao recuperar os posts. Tente novamente." });
+        return res.status(500).json({ message: "Ocorreu um erro ao recuperar os posts. Tente novamente." });
     } finally {
     }
 });
