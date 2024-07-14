@@ -10,7 +10,7 @@ const dataBase = new getConnection();
 router.post('/login', async (req, res) => {
   try {
     const { nickname, password } = req.body;
-    console.log(nickname);
+
     if (!nickname || !password || nickname === "" || password === "") {
       return res.status(400).json({ message: "Campo faltando", logged: false });
     }

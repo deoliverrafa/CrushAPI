@@ -104,8 +104,6 @@ router.post("/changeNameCampus/:token", multer().none(), async (req, res) => {
             return res.status(403).json({ message: 'Token Inválido', validToken: false })
         }
 
-        console.log('Objeto decodificado', decodedObj);
-
         await dataBase.connect()
 
         const userFound = await userSchema.findOneAndUpdate({
@@ -132,8 +130,6 @@ router.post("/changePassword/:token", multer().none(), async (req, res) => {
         const token = req.params.token
         const { password, novasenha } = req.body
 
-        console.log("Requisição", req.body);
-
         if (!token) {
             return res.status(400).json({ message: "É preciso especificar um token", validToken: false })
         }
@@ -155,26 +151,20 @@ router.post("/changePassword/:token", multer().none(), async (req, res) => {
 
         const comparePassword = await bcrypt.compare(password, foundUserToComparePassword.password)
 
-        console.log("Comparou", comparePassword);
-
         if (!comparePassword || comparePassword == false) {
             return res.status(400).json({ message: 'Senha incorreta' })
         }
 
         const encryptingNewPassword = await bcrypt.hash(novasenha, 10)
 
-        console.log("Encryptou", encryptingNewPassword);
         const userFound = await userSchema.findOneAndUpdate({
             _id: decodedObj.user._id,
             password: encryptingNewPassword
         })
 
-        console.log('Salvou usuário', userFound);
-
         if (!userFound || userFound == null) {
             return res.status(400).json({ message: "Erro ao procurar usuário", userFound, updated: false })
         }
-        console.log("Tudo certo");
         return res.status(200).json({ message: "Atualizado com sucesso", updated: true })
 
     } catch (error) {

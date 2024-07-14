@@ -33,7 +33,6 @@ router.get("/token/:token", async (req, res) => {
 
         const userFinded = await userSchema.findOne({ _id: decodedObj.user._id })
 
-        console.log("Usuario encontrado");
         if (!userFinded) {
             return res.status(400).json({ message: "Usuário não encontrado" })
         }
@@ -48,7 +47,6 @@ router.get("/token/:token", async (req, res) => {
 router.get("/id/:id", async (req, res) => {
     try {
         const id = req.params.id
-        console.log("Id passado:", id);
 
         await dataBase.connect()
 
