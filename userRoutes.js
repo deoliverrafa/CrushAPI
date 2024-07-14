@@ -45,8 +45,6 @@ router.get("/id/:id", async (req, res) => {
     try {
         const queryId = req.params.id;
 
-        console.log("ID recebido na rota: ", queryId);
-
         if (!queryId) {
             return res.status(400).json({ message: "ID não especificado" });
         }
@@ -56,7 +54,6 @@ router.get("/id/:id", async (req, res) => {
 
         // Busca o usuário pelo _id
         const userFinded = await userSchema.findOne({ _id: queryId });
-        console.log("Usuário encontrado no MongoDB: ", userFinded);
 
         if (!userFinded) {
             return res.status(404).json({
