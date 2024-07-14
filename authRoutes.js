@@ -18,7 +18,7 @@ router.post('/login', async (req, res) => {
     await dataBase.connect();
 
     const userFinded = await userSchema.findOne({ nickname });
-        
+
     if (!userFinded) {
       return res.status(400).json({ message: "Nickname não encontrado", logged: false });
     }
@@ -31,7 +31,7 @@ router.post('/login', async (req, res) => {
 
     const token = jwt.sign({ user: userFinded }, process.env.JWT_SECRET, { expiresIn: '8h' });
 
-    return res.status(200).json({ message: 'Autenticado com sucesso', token });
+    return res.status(200).json({ message: 'Autenticado com sucesso', token, logged: true });
   } catch (error) {
     console.error("Erro ao fazer login:", error);
     return res.status(500).json({ message: "Erro interno. Por favor, tente novamente" });
