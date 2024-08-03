@@ -6,6 +6,10 @@ const userSchema = new mongoose.Schema({
         required: true,
         index: true,
     },
+    userName: {
+        type: String,
+        required: true,
+    },
     email: {
         type: String,
         required: true,
@@ -30,6 +34,9 @@ const userSchema = new mongoose.Schema({
         type: String,
     },
     avatar: {
+        type: String,
+    },
+    curso: {
         type: String,
     },
     bio: {
