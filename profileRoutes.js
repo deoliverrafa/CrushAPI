@@ -79,11 +79,11 @@ router.post("/updatePhoto", multer().single('avatar'), async (req, res) => {
     }
 });
 
-router.post("/changeNameCampus/:token", multer().none(), async (req, res) => {
+router.post("/changeNameCampusCurso/:token", multer().none(), async (req, res) => {
     try {
 
         const token = req.params.token
-        const { nickname, campus } = req.body
+        const { nickname, campus, curso  } = req.body
 
         if (!token) {
             return res.status(400).json({ message: "É preciso especificar um token", validToken: false })
@@ -110,6 +110,7 @@ router.post("/changeNameCampus/:token", multer().none(), async (req, res) => {
             _id: decodedObj.user._id,
             nickname: nickname,
             campus: campus,
+            curso: curso,
         })
 
         if (!userFound) {
