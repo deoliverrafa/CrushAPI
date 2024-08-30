@@ -14,8 +14,7 @@ const dataBase = new getConnection();
 
 router.post("/updatePhoto", multer().single('avatar'), async (req, res) => {
     try {
-
-        const token = req.params.token
+        const token = req.headers.authorization.split(' ')[1];
 
         if (!token) {
             return res.status(400).json({ message: "É preciso especificar um token", validToken: false })
@@ -61,10 +60,10 @@ router.post("/updatePhoto", multer().single('avatar'), async (req, res) => {
                 }
 
                 // Atualizar o URL da foto do usuário no banco de dados
-                userFound.avatar = result.url;
+                userFound.avatar = result.secure_url;
                 await userFound.save();
 
-                return res.status(201).json({ message: "Update realizado com sucesso", avatarURL: result.url, updated: true });
+                return res.status(201).json({ message: "Update realizado com sucesso", avatarURL: result.secure_url, updated: true });
             }
         );
 
@@ -83,7 +82,7 @@ router.post("/changeNameCampusCurso/:token", multer().none(), async (req, res) =
     try {
 
         const token = req.params.token
-        const { nickname, campus, curso  } = req.body
+        const { nickname, campus, curso } = req.body
 
         if (!token) {
             return res.status(400).json({ message: "É preciso especificar um token", validToken: false })
