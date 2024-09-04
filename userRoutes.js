@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { json } from 'express';
 import getConnection from './connection.js';
 import userSchema from './userSchema.js';
 import jwt from 'jsonwebtoken'
@@ -142,7 +142,7 @@ router.put("/follow", async (req, res) => {
         }
 
         if (decodedObj.user._id == userFollowId) {
-            return res.status(403).json({message: "Você não pode seguir a si mesmo"})
+            return res.status(403).json({ message: "Você não pode seguir a si mesmo" })
         }
 
         // Conecta ao banco de dados
@@ -181,6 +181,71 @@ router.put("/follow", async (req, res) => {
         return res.status(500).json({ message: "Erro ao seguir usuário", error });
     }
 });
+
+router.delete(("/unfollow"), async (req, res) => {
+    try {
+
+        const { token, unfollowId } = req.body
+
+        if (!token) {
+            return res.status(403).json({ message: "Sua sessão expirou" })
+        }
+
+        let decodedObj;
+        try {
+            decodedObj = jwt.verify(token, process.env.JWT_SECRET);
+        } catch (error) {
+            if (error.name == "TokenExpiredError") {
+                return res.status(403).json({ message: "Token Expirado", validToken: false }).redirect("/");
+            }
+            return res.status(403).json({ message: "Token Inválido", validToken: false });
+        }
+
+        if (!unfollowId) {
+            return res.status(400).json({ message: "ID do usuário a seguir não especificado" });
+        }
+
+        if (decodedObj.user._id == unfollowId) {
+            return res.status(403).json({ message: "Você não pode deixar de seguir a si mesmo" })
+        }
+
+        await dataBase.connect()
+
+        const updatedUser = userSchema.findByIdAndUpdate(
+            decodedObj.user._id,
+            {
+                $pull: { following: unfollowId },
+                $inc: { Nfollowing: -1 },
+            },
+            { new: true }
+        )
+
+        if (!updatedUser) {
+            return res.status(500).json({ message: "Erro ao deixar de seguir usuário" })
+        }
+
+        const updatedUnfollowUser = userSchema.findByIdAndUpdate(
+            unfollowId,
+            {
+                $pull: { followers: decodedObj.user._id },
+                $inc: { Nfollowers: -1 },
+            },
+            { new: true }
+        )
+
+        if (!updatedUnfollowUser) {
+            return res.status(500).json({ message: "Erro ao deixar de seguir usuário" })
+        }
+
+        return res.status(200).json({
+            message: "Deixou de seguir",
+            unfollowed: true,
+        })
+
+    } catch (error) {
+        return res.status(500).json({ message: "Algo deu errado no servidor" })
+    }
+})
 
 
 export default router;
