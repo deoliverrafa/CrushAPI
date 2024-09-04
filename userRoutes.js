@@ -182,7 +182,7 @@ router.put("/follow", async (req, res) => {
     }
 });
 
-router.delete(("/unfollow"), async (req, res) => {
+router.put(("/unfollow"), async (req, res) => {
     try {
 
         const { token, unfollowId } = req.body
