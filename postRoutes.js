@@ -165,43 +165,32 @@ router.post('/like', async (req, res) => {
 router.post('/unlike', async (req, res) => {
     const { token, postId } = req.body;
 
-    console.log("Recebido token:", token);
-    console.log("Recebido postId:", postId);
-
     try {
-        const decodedObj = jwt.verify(token, process.env.JWT_SECRET);
-        console.log("Token decodificado:", decodedObj);
+        const decodedObj = jwt.verify(token, process.env.JWT_SECRET);        
 
         await dataBase.connect();
-        console.log("Banco de dados conectado");
-
+        
         const post = await postSchema.findById(postId);
-        console.log("Post encontrado:", post);
 
         if (!post) {
-            console.log("Post não encontrado");
             return res.status(404).json({ message: 'Post não encontrado', found: false });
         }
 
         if (!post.likedBy.includes(decodedObj.user._id)) {
-            console.log("Usuário não curtiu o post");
             return res.status(400).json({ message: 'Você ainda não curtiu esse post', notLiked: true });
         }
 
         post.likedBy = post.likedBy.filter(userId => userId.toString() !== decodedObj.user._id.toString());
         post.likeCount = Math.max(post.likeCount - 1, 0);
         await post.save();
-        console.log("Post atualizado com sucesso");
 
         return res.status(200).json({ message: 'Like removido com sucesso', likeCount: post.likeCount, unLiked: true });
     } catch (error) {
         console.error("Erro capturado:", error);
 
         if (error.name === 'TokenExpiredError') {
-            console.log("Token expirado");
             return res.status(403).json({ message: 'Token Expirado', validToken: false });
         }
-        console.log("Token inválido");
         return res.status(403).json({ message: 'Token Inválido', validToken: false });
     }
 });
