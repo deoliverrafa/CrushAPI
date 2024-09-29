@@ -153,7 +153,7 @@ router.post('/like', async (req, res) => {
         post.likeCount += 1;
         await post.save();
 
-        return res.status(200).json({ message: 'Post curtido com sucesso', likeCount: post.likeCount });
+        return res.status(200).json({ message: 'Post curtido com sucesso', likeCount: post.likeCount, liked: true });
     } catch (error) {
         if (error.name === 'TokenExpiredError') {
             return res.status(403).json({ message: 'Token Expirado', validToken: false });
@@ -164,7 +164,7 @@ router.post('/like', async (req, res) => {
 
 router.post('/unlike', async (req, res) => {
     const { token, postId } = req.body;
-    
+
     console.log("Recebido token:", token);
     console.log("Recebido postId:", postId);
 
@@ -193,10 +193,10 @@ router.post('/unlike', async (req, res) => {
         await post.save();
         console.log("Post atualizado com sucesso");
 
-        return res.status(200).json({ message: 'Like removido com sucesso', likeCount: post.likeCount });
+        return res.status(200).json({ message: 'Like removido com sucesso', likeCount: post.likeCount, unLiked: true });
     } catch (error) {
         console.error("Erro capturado:", error);
-        
+
         if (error.name === 'TokenExpiredError') {
             console.log("Token expirado");
             return res.status(403).json({ message: 'Token Expirado', validToken: false });
