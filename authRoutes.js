@@ -31,7 +31,7 @@ router.post('/login', async (req, res) => {
 
     const token = jwt.sign({ user: userFinded }, process.env.JWT_SECRET, { expiresIn: '8h' });
 
-    return res.status(200).json({ message: 'Autenticado com sucesso', token, logged: true });
+    return res.status(200).json({ message: 'Autenticado com sucesso', token, logged: true, userId: userFinded._id});
   } catch (error) {
     console.error("Erro ao fazer login:", error);
     return res.status(500).json({ message: "Erro interno. Por favor, tente novamente" });
@@ -42,7 +42,7 @@ router.post('/register', async (req, res) => {
   try {
     const { nickname, email, password, birthdaydata, campus, userName, type } = req.body;
 
-    if (!email || !nickname || !password || !birthdaydata || !campus || !userName ) {
+    if (!email || !nickname || !password || !birthdaydata || !campus || !userName) {
       return res.status(400).send({ message: "Preencha todos os campos" });
     }
 
