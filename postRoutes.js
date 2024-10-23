@@ -53,7 +53,7 @@ router.post('/publish/:token', upload.single('photo'), async (req, res) => {
                 isAnonymous,
                 photoURL,
                 userAvatar: avatar,
-                userId: new mongoose.Types.ObjectId(decodedObj.user._id)
+                userId: decodedObj.user._id
             };
 
             await postSchema.create(postToSave);
@@ -166,10 +166,10 @@ router.post('/unlike', async (req, res) => {
     const { token, postId } = req.body;
 
     try {
-        const decodedObj = jwt.verify(token, process.env.JWT_SECRET);        
+        const decodedObj = jwt.verify(token, process.env.JWT_SECRET);
 
         await dataBase.connect();
-        
+
         const post = await postSchema.findById(postId);
 
         if (!post) {
@@ -195,5 +195,37 @@ router.post('/unlike', async (req, res) => {
     }
 });
 
+router.post('/comment/:postId/:token', async (req, res) => {
+    const { postId, token } = req.params;
+    const { content } = req.body
 
+    try {
+        jwt.verify(token, process.env.JWT_SECRET);
+
+        await dataBase.connect();
+
+        const post = await postSchema.findById(postId);
+
+        if (!post) {
+            return res.status(404).json({message: "Postagem não encontrada ou deletada", posted: false})
+        }
+        
+        const newComment = await Comment.create({
+            userId: userId,
+            content,
+        });
+
+        post.comments.push(newComment._id);
+        await post.save();
+
+        return res.status(200).json({message: "Postado", posted: true})
+    } catch (error) {
+        console.error("Erro capturado:", error);
+
+        if (error.name === 'TokenExpiredError') {
+            return res.status(403).json({ message: 'Token Expirado', validToken: false, posted: false });
+        }
+        return res.status(403).json({ message: 'Token Inválido', validToken: false, posted: false });
+    }
+})
 export default router;

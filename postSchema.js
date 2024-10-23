@@ -50,7 +50,11 @@ const postSchema = new mongoose.Schema({
     likedBy: {
         type: [ObjectId],
         required: false,
-    }
+    },
+    comments:[{
+        type: ObjectId,
+        ref: 'Comment'
+    }]
 });
 
 const Post = mongoose.model('Post', postSchema);

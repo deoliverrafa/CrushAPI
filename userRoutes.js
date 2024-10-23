@@ -1,4 +1,4 @@
-import express, { json } from 'express';
+import express from 'express';
 import getConnection from './connection.js';
 import userSchema from './userSchema.js';
 import jwt from 'jsonwebtoken'
@@ -122,7 +122,7 @@ router.post("/getByName", async (req, res) => {
 router.put("/follow", async (req, res) => {
     try {
         const { userFollowId, token } = req.body;
-
+        
         if (!token) {
             return res.status(400).json({ message: "É preciso especificar um token" });
         }
@@ -132,7 +132,7 @@ router.put("/follow", async (req, res) => {
             decodedObj = jwt.verify(token, process.env.JWT_SECRET);
         } catch (error) {
             if (error.name == "TokenExpiredError") {
-                return res.status(403).json({ message: "Token Expirado", validToken: false }).redirect("/");
+                return res.status(403).json({ message: "Token Expirado", validToken: false });
             }
             return res.status(403).json({ message: "Token Inválido", validToken: false });
         }
@@ -158,6 +158,8 @@ router.put("/follow", async (req, res) => {
             { new: true }
         );
 
+        console.log(updatedFollowUser);
+        
         // Atualiza o usuário que está sendo seguido, adicionando o usuário logado ao array de followers
         const updatedFollowUser = await userSchema.findByIdAndUpdate(
             userFollowId,
