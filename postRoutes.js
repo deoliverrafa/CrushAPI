@@ -195,11 +195,10 @@ router.post('/unlike', async (req, res) => {
     }
 });
 
-router.post('/comment/:postId/:token', async (req, res) => {
-    const { postId, token } = req.params;
-    const { content } = req.body
-
+router.post('/comment', async (req, res) => {
     try {
+        const { content, postId, token } = req.body
+        
         jwt.verify(token, process.env.JWT_SECRET);
 
         await dataBase.connect();
@@ -207,9 +206,9 @@ router.post('/comment/:postId/:token', async (req, res) => {
         const post = await postSchema.findById(postId);
 
         if (!post) {
-            return res.status(404).json({message: "Postagem não encontrada ou deletada", posted: false})
+            return res.status(404).json({ message: "Postagem não encontrada ou deletada", posted: false })
         }
-        
+
         const newComment = await Comment.create({
             userId: userId,
             content,
@@ -218,7 +217,7 @@ router.post('/comment/:postId/:token', async (req, res) => {
         post.comments.push(newComment._id);
         await post.save();
 
-        return res.status(200).json({message: "Postado", posted: true})
+        return res.status(200).json({ message: "Postado", posted: true })
     } catch (error) {
         console.error("Erro capturado:", error);
 
