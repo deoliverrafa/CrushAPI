@@ -198,7 +198,7 @@ router.post('/unlike', async (req, res) => {
 router.post('/comment', async (req, res) => {
     try {
         const { content, postId, token } = req.body
-        
+
         jwt.verify(token, process.env.JWT_SECRET);
 
         await dataBase.connect();
@@ -224,7 +224,7 @@ router.post('/comment', async (req, res) => {
         if (error.name === 'TokenExpiredError') {
             return res.status(403).json({ message: 'Token Expirado', validToken: false, posted: false });
         }
-        return res.status(403).json({ message: 'Token Inválido', validToken: false, posted: false });
+        return res.status(403).json({ message: error, validToken: false, posted: false });
     }
 })
 export default router;
