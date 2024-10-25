@@ -1,5 +1,4 @@
 import { Readable } from 'stream';
-import mongoose from 'mongoose';
 import express from 'express';
 import multer from 'multer';
 import jwt from 'jsonwebtoken'
@@ -10,6 +9,7 @@ import cloudinary from './cloudinary.js';
 import userSchema from "./userSchema.js";
 import postSchema from './postSchema.js';
 import getConnection from './connection.js';
+import Comment from './commentSchema.js';
 
 
 const router = express.Router();
@@ -197,16 +197,20 @@ router.post('/unlike', async (req, res) => {
 
 router.post('/comment', async (req, res) => {
     try {
-        const { content, postId, token } = req.body
-        
-        jwt.verify(token, process.env.JWT_SECRET);
+        const { content, postId, token } = req.body;
+
+        const decodedObj = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decodedObj.user._id;
+
+        if (!content || content.trim() === '') {
+            return res.status(400).json({ message: "Comentário vazio" });
+        }
 
         await dataBase.connect();
 
         const post = await postSchema.findById(postId);
-
         if (!post) {
-            return res.status(404).json({ message: "Postagem não encontrada ou deletada", posted: false })
+            return res.status(404).json({ message: "Postagem não encontrada ou deletada", posted: false });
         }
 
         const newComment = await Comment.create({
@@ -217,14 +221,25 @@ router.post('/comment', async (req, res) => {
         post.comments.push(newComment._id);
         await post.save();
 
-        return res.status(200).json({ message: "Postado", posted: true })
+        return res.status(200).json({ message: "Comentário postado", posted: true });
+
     } catch (error) {
         console.error("Erro capturado:", error);
 
         if (error.name === 'TokenExpiredError') {
-            return res.status(403).json({ message: 'Token Expirado', validToken: false, posted: false, error });
+            return res.status(403).json({ message: 'Token Expirado', validToken: false, posted: false });
         }
-        return res.status(403).json({ message: 'Token Inválido', validToken: false, posted: false, error });
+
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(403).json({ message: 'Token Inválido', validToken: false, posted: false });
+        }
+
+        return res.status(500).json({ message: 'Erro no servidor', posted: false });
     }
+});
+
+router.get('/getcomments', (req, res) => {
+        
 })
+
 export default router;
