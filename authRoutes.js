@@ -12,7 +12,7 @@ router.post('/login', async (req, res) => {
     const { nickname, password } = req.body;
 
     if (!nickname || !password || nickname === "" || password === "") {
-      return res.status(400).json({ message: "Campo faltando", logged: false });
+      return res.status(400).json({ message: "Preencha todos os campos.", logged: false });
     }
 
     await dataBase.connect();
@@ -20,21 +20,21 @@ router.post('/login', async (req, res) => {
     const userFinded = await userSchema.findOne({ nickname });
 
     if (!userFinded) {
-      return res.status(400).json({ message: "Nickname não encontrado", logged: false });
+      return res.status(400).json({ message: "Nickname não encontrado.", logged: false });
     }
 
     const comparePassword = await bcrypt.compare(password, userFinded.password);
 
     if (!comparePassword) {
-      return res.status(400).json({ message: "Senha incorreta tente novamente", logged: false });
+      return res.status(400).json({ message: "Senha incorreta, tente novamente.", logged: false });
     }
 
     const token = jwt.sign({ user: userFinded }, process.env.JWT_SECRET, { expiresIn: '8h' });
 
-    return res.status(200).json({ message: 'Autenticado com sucesso', token, logged: true, userId: userFinded._id});
+    return res.status(200).json({ message: 'Autenticado com sucesso!', token, logged: true, userId: userFinded._id});
   } catch (error) {
     console.error("Erro ao fazer login:", error);
-    return res.status(500).json({ message: "Erro interno. Por favor, tente novamente" });
+    return res.status(500).json({ message: "Erro interno. Por favor, tente novamente." });
   }
 });
 
@@ -43,7 +43,7 @@ router.post('/register', async (req, res) => {
     const { nickname, email, password, birthdaydata, campus, userName, type } = req.body;
 
     if (!email || !nickname || !password || !birthdaydata || !campus || !userName) {
-      return res.status(400).send({ message: "Preencha todos os campos" });
+      return res.status(400).send({ message: "Preencha todos os campos." });
     }
 
     await dataBase.connect();
@@ -55,7 +55,7 @@ router.post('/register', async (req, res) => {
         return res.status(400).send({ message: "Nickname já está em uso. Por favor, escolha outro." });
       }
       if (existingUser.email == email) {
-        return res.status(400).send({ message: "Email já está em uso" })
+        return res.status(400).send({ message: "E-mail já está em uso." })
       }
     }
 
@@ -73,7 +73,7 @@ router.post('/register', async (req, res) => {
 
     await newUser.save();
 
-    return res.status(201).json({ message: "Usuário cadastrado com sucesso", isRegistered: true, user: newUser });
+    return res.status(201).json({ message: "Usuário cadastrado com sucesso!", isRegistered: true, user: newUser });
   } catch (error) {
     console.error("Erro ao registrar usuário:", error);
     return res.status(500).send({ message: "Erro interno. Por favor, tente novamente." });
