@@ -158,8 +158,6 @@ router.put("/follow", async (req, res) => {
             { new: true }
         );
 
-        console.log(updatedFollowUser);
-        
         // Atualiza o usuário que está sendo seguido, adicionando o usuário logado ao array de followers
         const updatedFollowUser = await userSchema.findByIdAndUpdate(
             userFollowId,

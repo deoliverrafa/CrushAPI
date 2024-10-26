@@ -11,7 +11,6 @@ const dataBase = new getConnection();
 router.post('/comment', async (req, res) => {
     try {
         const { content, postId, token, userId } = req.body
-        console.log(req.body);
         
         jwt.verify(token, process.env.JWT_SECRET);
 
@@ -30,7 +29,7 @@ router.post('/comment', async (req, res) => {
 
         post.comments.push(newComment._id);
         post.commentCount = post.comments.length;
-        
+
         await post.save();
 
         return res.status(200).json({ message: "Postado", posted: true })
