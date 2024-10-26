@@ -51,10 +51,15 @@ const postSchema = new mongoose.Schema({
         type: [ObjectId],
         required: false,
     },
-    comments:[{
+    comments: [{
         type: ObjectId,
         ref: 'Comment'
-    }]
+    }],
+    commentCount: {
+        type: Number,
+        default: 0,
+        required: true,
+    },
 });
 
 const Post = mongoose.model('Post', postSchema);

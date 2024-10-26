@@ -8,6 +8,7 @@ import userRoutes from "./userRoutes.js"
 import authRoutes from "./authRoutes.js"
 import profileRoutes from "./profileRoutes.js"
 import postRoutes from "./postRoutes.js"
+import commentRoutes from './commentRoutes.js'
 
 // Ambient var
 const app = express();
@@ -29,6 +30,7 @@ app.use('/user', userRoutes)
 app.use('/auth', authRoutes)
 app.use('/profile', profileRoutes)
 app.use('/post', postRoutes)
+app.use('/comment', commentRoutes)
 
 
 const PORT = process.env.PORT || 4040;
