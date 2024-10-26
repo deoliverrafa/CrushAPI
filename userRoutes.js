@@ -145,6 +145,7 @@ router.put("/follow", async (req, res) => {
             return res.status(403).json({ message: "Você não pode seguir a si mesmo" })
         }
 
+        
         // Conecta ao banco de dados
         await dataBase.connect();
 
@@ -185,7 +186,7 @@ router.put("/follow", async (req, res) => {
 router.put(("/unfollow"), async (req, res) => {
     try {
 
-        const { token, unfollowId } = req.body
+        const { token, unfollowId } = req.body        
 
         if (!token) {
             return res.status(403).json({ message: "Sua sessão expirou" })
@@ -211,7 +212,7 @@ router.put(("/unfollow"), async (req, res) => {
 
         await dataBase.connect()
 
-        const updatedUser = userSchema.findByIdAndUpdate(
+        const updatedUser = await userSchema.findByIdAndUpdate(
             decodedObj.user._id,
             {
                 $pull: { following: unfollowId },
@@ -219,12 +220,12 @@ router.put(("/unfollow"), async (req, res) => {
             },
             { new: true }
         )
-
+        
         if (!updatedUser) {
             return res.status(500).json({ message: "Erro ao deixar de seguir usuário" })
         }
 
-        const updatedUnfollowUser = userSchema.findByIdAndUpdate(
+        const updatedUnfollowUser = await userSchema.findByIdAndUpdate(
             unfollowId,
             {
                 $pull: { followers: decodedObj.user._id },
