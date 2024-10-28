@@ -15,6 +15,15 @@ const commentSchema = new mongoose.Schema({
         type: Date,
         default: () => new Date(),
     },
+    likeCount: {
+        type: Number,
+        default: 0,
+        required: true,
+    },
+    likedBy: {
+        type: [ObjectId],
+        required: false,
+    },
 });
 
 const Comment = mongoose.model('Comment', commentSchema);
