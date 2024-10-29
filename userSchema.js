@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb";
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
@@ -74,6 +75,20 @@ const userSchema = new mongoose.Schema({
   Nfollowers: {
     type: Number,
     default: 0,
+  },
+  status: {
+    type: String,
+    enum: ["online", "offline"],
+    default: "offline",
+  },
+  likeCount: {
+    type: Number,
+    default: 0,
+    required: true,
+  },
+  likedBy: {
+    type: [ObjectId],
+    required: false,
   },
 });
 
