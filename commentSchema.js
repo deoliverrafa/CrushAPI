@@ -23,7 +23,7 @@ const commentSchema = new mongoose.Schema({
   likedBy: {
     type: [ObjectId],
     required: false,
-  },
+  }
 });
 
 const Comment = mongoose.model("Comment", commentSchema);

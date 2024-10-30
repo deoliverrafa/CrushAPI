@@ -40,9 +40,9 @@ router.post('/login', async (req, res) => {
 
 router.post('/register', async (req, res) => {
   try {
-    const { nickname, email, password, birthdaydata, campus, userName, type } = req.body;
+    const { nickname, email, password, userName, type } = req.body;
 
-    if (!email || !nickname || !password || !birthdaydata || !campus || !userName) {
+    if (!email || !nickname || !password || !userName) {
       return res.status(400).send({ message: "Preencha todos os campos." });
     }
 
@@ -65,8 +65,6 @@ router.post('/register', async (req, res) => {
       nickname,
       email,
       password: hashedPassword,
-      birthdaydata,
-      campus,
       userName,
       type
     });

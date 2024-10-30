@@ -35,7 +35,9 @@ router.post("/comment", async (req, res) => {
 
     await post.save();
 
-    return res.status(200).json({ message: "Postado", posted: true });
+    return res
+      .status(200)
+      .json({ message: "Postado", posted: true, commentId: newComment._id });
   } catch (error) {
     console.error("Erro capturado:", error);
 

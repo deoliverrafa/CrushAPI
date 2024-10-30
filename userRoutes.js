@@ -364,4 +364,53 @@ router.post("/like", async (req, res) => {
   }
 });
 
+router.get("/suggestions/:token", async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    // Verifica se o token foi fornecido
+    if (!token) {
+      return res
+        .status(400)
+        .json({ message: "É preciso especificar um token" });
+    }
+
+    let decodedObj;
+    try {
+      // Decodifica o token
+      decodedObj = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+      if (error.name === "TokenExpiredError") {
+        return res
+          .status(403)
+          .json({ message: "Token Expirado", validToken: false });
+      }
+      return res
+        .status(403)
+        .json({ message: "Token Inválido", validToken: false });
+    }
+
+    await dataBase.connect();
+
+    // Busca o usuário atual para obter a lista de quem ele já segue
+    const currentUser = await userSchema.findById(decodedObj.user._id);
+
+    if (!currentUser) {
+      return res.status(404).json({ message: "Usuário não encontrado" });
+    }
+
+    // Obtém sugestões de usuários que ele ainda não segue
+    const suggestions = await userSchema
+      .find({
+        _id: { $nin: [decodedObj.user._id, ...currentUser.following] },
+      })
+      .limit(10); // Limita o número de sugestões
+
+    return res.status(200).json({ suggestions });
+  } catch (error) {
+    console.error("Erro ao buscar sugestões:", error);
+    return res.status(500).json({ message: "Erro ao buscar sugestões", error });
+  }
+});
+
 export default router;

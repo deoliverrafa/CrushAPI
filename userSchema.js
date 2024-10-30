@@ -21,14 +21,12 @@ const userSchema = new mongoose.Schema({
   },
   birthdaydata: {
     type: String,
-    required: true,
   },
   genre: {
     type: String,
   },
   campus: {
     type: String,
-    required: true,
   },
   insertAt: {
     type: Date,

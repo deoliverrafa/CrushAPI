@@ -378,6 +378,65 @@ router.post("/changeEmail/:token", multer().none(), async (req, res) => {
   }
 });
 
+router.post("/changeBirthday/:token", multer().none(), async (req, res) => {
+  try {
+    const token = req.params.token;
+    const { birthdaydata } = req.body;
+
+    if (!token) {
+      return res
+        .status(400)
+        .json({ message: "É preciso especificar um token", validToken: false });
+    }
+
+    if (!birthdaydata) {
+      return res
+        .status(404)
+        .json({ message: "Campo 'birthdaydata' faltando", updated: false });
+    }
+
+    let decodedObj;
+
+    try {
+      decodedObj = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+      if (error.name === "TokenExpiredError") {
+        return res
+          .status(403)
+          .json({ message: "Token Expirado", validToken: false });
+      }
+      return res
+        .status(403)
+        .json({ message: "Token Inválido", validToken: false });
+    }
+
+    await dataBase.connect();
+
+    const userFound = await userSchema.findOneAndUpdate(
+      { _id: decodedObj.user._id }, // Filtro de busca
+      {
+        $set: {
+          birthdaydata: birthdaydata,
+        },
+      },
+      { new: true } // Retorna o documento atualizado
+    );
+
+    if (!userFound) {
+      return res
+        .status(400)
+        .json({ message: "Erro ao procurar usuário", updated: false });
+    }
+
+    return res
+      .status(200)
+      .json({ message: "Atualizado com sucesso", updated: true });
+  } catch (error) {
+    console.error("Erro ao mudar gênero", error);
+    return res.status(500).json({ message: "Erro ao atualizar dados", error });
+  }
+});
+
 router.post("/changeGenre/:token", multer().none(), async (req, res) => {
   try {
     const token = req.params.token;
