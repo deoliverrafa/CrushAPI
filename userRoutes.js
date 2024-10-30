@@ -404,7 +404,7 @@ router.get("/suggestions/:token", async (req, res) => {
       .find({
         _id: { $nin: [decodedObj.user._id, ...currentUser.following] },
       })
-      .limit(10); // Limita o número de sugestões
+      .limit(100); // Limita o número de sugestões
 
     return res.status(200).json({ suggestions });
   } catch (error) {

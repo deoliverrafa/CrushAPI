@@ -1,12 +1,31 @@
 import getConnection from "./connection.js";
 import postSchema from "./postSchema.js";
 import commentSchema from "./commentSchema.js";
+import userSchema from "./userSchema.js";
 
 import express from "express";
 import jwt from "jsonwebtoken";
 
 const router = express.Router();
 const dataBase = new getConnection();
+
+const extractHashtagsAndMentions = async (content) => {
+  const hashtags = content.match(/#[\w]+/g) || [];
+  const mentions = content.match(/@[\w]+/g) || [];
+
+  const hashtagsList = hashtags.map((tag) => tag.slice(1));
+
+  const mentionedUsers = [];
+  for (const mention of mentions) {
+    const userName = mention.slice(1);
+    const user = await userSchema.findOne({ nickname: userName });
+    if (user) {
+      mentionedUsers.push(user._id);
+    }
+  }
+
+  return { hashtags: hashtagsList, mentionedUsers };
+};
 
 router.post("/comment", async (req, res) => {
   try {
@@ -25,9 +44,15 @@ router.post("/comment", async (req, res) => {
       });
     }
 
+    const { hashtags, mentionedUsers } = await extractHashtagsAndMentions(
+      content
+    );
+
     const newComment = await commentSchema.create({
       userId: userId,
       content,
+      hashtags,
+      mentionedUsers,
     });
 
     post.comments.push(newComment._id);
