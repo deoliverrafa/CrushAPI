@@ -15,18 +15,28 @@ const dataBase = new getConnection();
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
+const extractHashtagsAndMentions = async (content) => {
+  const hashtags = content.match(/#[\w]+/g) || [];
+  const mentions = content.match(/@[\w]+/g) || [];
+
+  const hashtagsList = hashtags.map((tag) => tag.slice(1));
+
+  const mentionedUsers = [];
+  for (const mention of mentions) {
+    const userName = mention.slice(1);
+    const user = await userSchema.findOne({ nickname: userName });
+    if (user) {
+      mentionedUsers.push(user._id);
+    }
+  }
+
+  return { hashtags: hashtagsList, mentionedUsers };
+};
+
 router.post("/publish/:token", upload.single("photo"), async (req, res) => {
   try {
     const token = req.params.token;
-    const {
-      nickname,
-      email,
-      campus,
-      content,
-      references,
-      isAnonymous,
-      avatar,
-    } = req.body;
+    const { content, isAnonymous } = req.body;
     const photo = req.file;
 
     if (!content) {
@@ -50,20 +60,21 @@ router.post("/publish/:token", upload.single("photo"), async (req, res) => {
     await dataBase.connect();
 
     const decodedObj = jwt.decode(token, process.env.JWT_SECRET);
+    const userFound = await userSchema.findOne({ _id: decodedObj.user._id });
 
-    const userFound = userSchema.findOne({ _id: decodedObj.user._id });
+    // Extrair hashtags e menções do conteúdo
+    const { hashtags, mentionedUsers } = await extractHashtagsAndMentions(
+      content
+    );
 
     const savePost = async (photoURL = null) => {
       const postToSave = {
-        nickname,
-        email,
-        campus,
         content,
-        references,
         isAnonymous,
         photoURL,
-        userAvatar: avatar,
         userId: decodedObj.user._id,
+        hashtags,
+        mentionedUsers,
       };
 
       await postSchema.create(postToSave);
@@ -98,7 +109,6 @@ router.post("/publish/:token", upload.single("photo"), async (req, res) => {
   } catch (error) {
     console.error("Error processing request:", error);
     return res.status(500).json({ error: "Erro ao processar a solicitação" });
-  } finally {
   }
 });
 

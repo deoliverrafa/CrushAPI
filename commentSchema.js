@@ -26,6 +26,7 @@ const commentSchema = new mongoose.Schema({
   },
   mentionedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   hashtags: [String],
+  replies: [{ type: ObjectId, ref: "Comment" }],
 });
 
 const Comment = mongoose.model("Comment", commentSchema);

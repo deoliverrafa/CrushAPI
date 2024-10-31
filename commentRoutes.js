@@ -246,4 +246,79 @@ router.post("/unlike", async (req, res) => {
   }
 });
 
+router.post("/reply", async (req, res) => {
+  try {
+    const { content, commentId, token, userId } = req.body;
+
+    jwt.verify(token, process.env.JWT_SECRET);
+    await dataBase.connect();
+
+    const parentComment = await commentSchema.findById(commentId);
+    if (!parentComment) {
+      return res.status(404).json({
+        message: "Comentário não encontrado",
+        posted: false,
+      });
+    }
+
+    const { hashtags, mentionedUsers } = await extractHashtagsAndMentions(
+      content
+    );
+
+    const replyComment = await commentSchema.create({
+      userId: userId,
+      content,
+      hashtags,
+      mentionedUsers,
+    });
+
+    parentComment.replies.push(replyComment._id);
+    await parentComment.save();
+
+    return res.status(200).json({
+      message: "Resposta postada",
+      posted: true,
+      replyId: replyComment._id,
+    });
+  } catch (error) {
+    console.error("Erro capturado:", error);
+    return res.status(500).json({ message: "Erro ao postar resposta", error });
+  }
+});
+
+router.get("/reply/id/:id", async (req, res) => {
+  try {
+    const queryId = req.params.id;
+
+    // Verifica se o ID foi fornecido
+    if (!queryId) {
+      return res.status(400).json({ message: "ID não especificado" });
+    }
+
+    // Conecta ao banco de dados
+    await dataBase.connect();
+
+    // Busca o comentário pelo _id
+    const commentFinded = await commentSchema.findOne({ _id: queryId });
+
+    // Se o comentário não for encontrado
+    if (!commentFinded) {
+      return res.status(404).json({
+        message: "Comentário não encontrado",
+        content: "Deletado",
+        userId: "Deletado",
+        likeCount: 0,
+      });
+    }
+
+    // Se o comentário for encontrado, retorna os dados
+    return res.status(200).json({ comment: commentFinded });
+  } catch (error) {
+    console.error("Erro ao buscar comentário:", error);
+    return res
+      .status(500)
+      .json({ message: "Erro ao buscar comentário", error });
+  }
+});
+
 export default router;
