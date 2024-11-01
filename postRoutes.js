@@ -302,4 +302,40 @@ router.post("/unlike", async (req, res) => {
   }
 });
 
+router.get("/saved/:token/:skip/:limit", async (req, res) => {
+  const { token, skip, limit } = req.params;
+
+  try {
+    const decodedObj = jwt.verify(token, process.env.JWT_SECRET);
+
+    await dataBase.connect();
+
+    const likedPosts = await postSchema
+      .find({ likedBy: decodedObj.user._id })
+      .sort({ insertAt: -1 })
+      .skip(parseInt(skip, 10))
+      .limit(parseInt(limit, 10));
+
+    if (!likedPosts || likedPosts.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "Nenhum post curtido encontrado." });
+    }
+
+    return res.status(200).json({ likedPosts });
+  } catch (error) {
+    console.error("Erro ao buscar posts curtidos:", error);
+
+    if (error.name === "TokenExpiredError") {
+      return res
+        .status(403)
+        .json({ message: "Token Expirado", validToken: false });
+    }
+
+    return res
+      .status(403)
+      .json({ message: "Token Inválido", validToken: false });
+  }
+});
+
 export default router;
