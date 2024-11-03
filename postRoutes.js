@@ -175,6 +175,55 @@ router.get("/get/:token/:skip/:limit", async (req, res) => {
   }
 });
 
+router.get("/get/user/:userId/:skip/:limit", async (req, res) => {
+  const { userId, skip, limit } = req.params;
+
+  let decodedObj;
+
+  if (!userId) {
+    return res
+      .status(400)
+      .json({ message: "É necessário repassar um userId válido" });
+  }
+  if (!skip || isNaN(skip)) {
+    return res
+      .status(400)
+      .json({ message: "É necessário repassar um skip válido" });
+  }
+  if (!limit || isNaN(limit)) {
+    return res
+      .status(400)
+      .json({ message: "É necessário repassar um limit válido" });
+  }
+
+  try {
+    await dataBase.connect();
+
+    const skipValue = parseInt(skip);
+    const limitValue = parseInt(limit);
+
+    const posts = await postSchema
+      .find({ userId, isAnonymous: false })
+      .sort({ insertAt: -1 })
+      .skip(skipValue)
+      .limit(limitValue);
+
+    if (!posts.length) {
+      return res.status(404).json({
+        message: "Nenhuma postagem encontrada.",
+      });
+    }
+
+    return res.status(200).json({ posts });
+  } catch (error) {
+    console.error("Erro ao recuperar posts:", error);
+    return res.status(500).json({
+      message: "Ocorreu um erro ao recuperar os posts. Tente novamente.",
+    });
+  } finally {
+  }
+});
+
 router.get("/id/:id", async (req, res) => {
   try {
     const queryId = req.params.id;
@@ -183,7 +232,6 @@ router.get("/id/:id", async (req, res) => {
       return res.status(400).json({ message: "ID não especificado" });
     }
 
-    // Conecta ao banco de dados
     await dataBase.connect();
 
     // Busca o post pelo _id

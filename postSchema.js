@@ -31,12 +31,7 @@ const postSchema = new mongoose.Schema({
     type: [ObjectId],
     required: false,
   },
-  comments: [
-    {
-      type: ObjectId,
-      ref: "Comment",
-    },
-  ],
+  comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
   commentCount: {
     type: Number,
     default: 0,

@@ -1,7 +1,10 @@
 import express from "express";
 import getConnection from "./connection.js";
 import userSchema from "./userSchema.js";
+import postSchema from "./postSchema.js";
+import commentSchema from "./commentSchema.js";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 
 const router = express.Router();
 const dataBase = new getConnection();
@@ -367,8 +370,6 @@ router.post("/like", async (req, res) => {
 router.get("/suggestions/:token", async (req, res) => {
   try {
     const { token } = req.params;
-
-    // Verifica se o token foi fornecido
     if (!token) {
       return res
         .status(400)
@@ -377,7 +378,6 @@ router.get("/suggestions/:token", async (req, res) => {
 
     let decodedObj;
     try {
-      // Decodifica o token
       decodedObj = jwt.verify(token, process.env.JWT_SECRET);
     } catch (error) {
       if (error.name === "TokenExpiredError") {
@@ -392,14 +392,12 @@ router.get("/suggestions/:token", async (req, res) => {
 
     await dataBase.connect();
 
-    // Busca o usuário atual para obter a lista de quem ele já segue
     const currentUser = await userSchema.findById(decodedObj.user._id);
 
     if (!currentUser) {
       return res.status(404).json({ message: "Usuário não encontrado" });
     }
 
-    // Obtém sugestões de usuários que ele ainda não segue
     const suggestions = await userSchema
       .find({
         _id: { $nin: [decodedObj.user._id, ...currentUser.following] },
@@ -410,6 +408,72 @@ router.get("/suggestions/:token", async (req, res) => {
   } catch (error) {
     console.error("Erro ao buscar sugestões:", error);
     return res.status(500).json({ message: "Erro ao buscar sugestões", error });
+  }
+});
+
+router.delete("/deleteAccount", async (req, res) => {
+  try {
+    const { password, token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({ message: "Token é necessário" });
+    }
+
+    let decodedObj;
+    try {
+      decodedObj = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+      return res.status(403).json({ message: "Token Inválido ou Expirado" });
+    }
+
+    await dataBase.connect();
+    const user = await userSchema.findById(decodedObj.user._id);
+
+    if (!user) {
+      return res.status(404).json({ message: "Usuário não encontrado" });
+    }
+
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+    if (!isPasswordCorrect) {
+      return res.status(401).json({ message: "Senha incorreta" });
+    }
+
+    const userId = decodedObj.user._id;
+
+    await postSchema.updateMany(
+      { likedBy: userId },
+      { $pull: { likedBy: userId }, $inc: { likeCount: -1 } }
+    );
+    await postSchema.updateMany(
+      { "comments.userId": userId },
+      { $pull: { comments: { userId: userId } }, $inc: { commentCount: -1 } }
+    );
+    await postSchema.updateMany(
+      { mentionedUsers: userId },
+      { $pull: { mentionedUsers: userId } }
+    );
+
+    await commentSchema.updateMany(
+      { likedBy: userId },
+      { $pull: { likedBy: userId }, $inc: { likeCount: -1 } }
+    );
+    await commentSchema.updateMany(
+      { "replies.userId": userId },
+      { $pull: { replies: { userId: userId } } }
+    );
+    await commentSchema.updateMany(
+      { mentionedUsers: userId },
+      { $pull: { mentionedUsers: userId } }
+    );
+
+    await postSchema.deleteMany({ userId: userId });
+    await commentSchema.deleteMany({ userId: userId });
+    await userSchema.findByIdAndDelete(userId);
+
+    return res.status(200).json({ message: "Conta excluída com sucesso" });
+  } catch (error) {
+    console.error("Erro ao excluir conta:", error);
+    return res.status(500).json({ message: "Erro ao excluir conta", error });
   }
 });
 
