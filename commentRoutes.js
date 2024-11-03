@@ -290,28 +290,21 @@ router.get("/reply/id/:id", async (req, res) => {
   try {
     const queryId = req.params.id;
 
-    // Verifica se o ID foi fornecido
     if (!queryId) {
       return res.status(400).json({ message: "ID não especificado" });
     }
 
-    // Conecta ao banco de dados
     await dataBase.connect();
 
-    // Busca o comentário pelo _id
     const commentFinded = await commentSchema.findOne({ _id: queryId });
 
-    // Se o comentário não for encontrado
     if (!commentFinded) {
       return res.status(404).json({
         message: "Comentário não encontrado",
-        content: "Deletado",
-        userId: "Deletado",
-        likeCount: 0,
+        comment: null,
       });
     }
 
-    // Se o comentário for encontrado, retorna os dados
     return res.status(200).json({ comment: commentFinded });
   } catch (error) {
     console.error("Erro ao buscar comentário:", error);
