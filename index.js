@@ -9,6 +9,7 @@ import authRoutes from "./authRoutes.js"
 import profileRoutes from "./profileRoutes.js"
 import postRoutes from "./postRoutes.js"
 import commentRoutes from './commentRoutes.js'
+import crushRoutes from './crushRoutes.js'
 
 // Ambient var
 const app = express();
@@ -31,7 +32,7 @@ app.use('/auth', authRoutes)
 app.use('/profile', profileRoutes)
 app.use('/post', postRoutes)
 app.use('/comment', commentRoutes)
-
+app.use('/crush', crushRoutes)
 
 const PORT = process.env.PORT || 4040;
 
