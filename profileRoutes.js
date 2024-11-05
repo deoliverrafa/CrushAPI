@@ -437,10 +437,10 @@ router.post("/changeBirthday/:token", multer().none(), async (req, res) => {
   }
 });
 
-router.post("/changeGenre/:token", multer().none(), async (req, res) => {
+router.post("/changeGender/:token", multer().none(), async (req, res) => {
   try {
     const token = req.params.token;
-    const { genre } = req.body;
+    const { gender } = req.body;
 
     if (!token) {
       return res
@@ -448,10 +448,10 @@ router.post("/changeGenre/:token", multer().none(), async (req, res) => {
         .json({ message: "É preciso especificar um token", validToken: false });
     }
 
-    if (!genre) {
+    if (!gender) {
       return res
         .status(404)
-        .json({ message: "Campo 'genre' faltando", updated: false });
+        .json({ message: "Campo 'gender' faltando", updated: false });
     }
 
     let decodedObj;
@@ -475,7 +475,7 @@ router.post("/changeGenre/:token", multer().none(), async (req, res) => {
       { _id: decodedObj.user._id }, // Filtro de busca
       {
         $set: {
-          genre: genre,
+          gender: gender,
         },
       },
       { new: true } // Retorna o documento atualizado

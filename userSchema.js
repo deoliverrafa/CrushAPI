@@ -1,4 +1,3 @@
-import { ObjectId } from "mongodb";
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
@@ -22,7 +21,7 @@ const userSchema = new mongoose.Schema({
   birthdaydata: {
     type: String,
   },
-  genre: {
+  gender: {
     type: String,
   },
   campus: {
@@ -50,19 +49,19 @@ const userSchema = new mongoose.Schema({
   },
   messages: [
     {
-      type: mongoose.Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId, 
       ref: "Message",
     },
   ],
   following: [
     {
-      type: mongoose.Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId, 
       ref: "User",
     },
   ],
   followers: [
     {
-      type: mongoose.Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId, 
       ref: "User",
     },
   ],
@@ -85,7 +84,7 @@ const userSchema = new mongoose.Schema({
     required: true,
   },
   likedBy: {
-    type: [ObjectId],
+    type: [mongoose.Schema.Types.ObjectId], 
     required: false,
   },
 });
