@@ -45,7 +45,25 @@ router.post("/like", async (req, res) => {
   }
 });
 
-router.get("/liked", async (req, res) => {
+router.post("/liked", async (req, res) => {
+  const { userId } = req.body;
+
+  try {
+    await dataBase.connect();
+
+    const likedByUsers = await userSchema.find(
+      { likedUsers: userId },
+      { password: 0 }
+    );
+
+    res.status(200).json(likedByUsers);
+  } catch (error) {
+    console.error("Erro ao buscar usuários que curtiram:", error);
+    res.status(500).json({ message: "Erro ao buscar usuários que curtiram." });
+  }
+});
+
+router.post("/matches", async (req, res) => {
   const { userId } = req.body;
 
   try {
@@ -57,15 +75,18 @@ router.get("/liked", async (req, res) => {
       return res.status(404).json({ message: "Usuário não encontrado." });
     }
 
-    const likedByUsers = await userSchema.find(
-      { _id: { $in: user.likedUsers } },
-      { password: 0 } 
-    );
+    const matches = await userSchema.find({
+      _id: { $in: user.likedUsers },
+      likedUsers: userId,
+    }, { password: 0 });
 
-    res.status(200).json(likedByUsers);
+    res.status(200).json({
+      message: "Matches encontrados com sucesso!",
+      matches,
+    });
   } catch (error) {
-    console.error("Erro ao buscar usuários que curtiram:", error);
-    res.status(500).json({ message: "Erro ao buscar usuários que curtiram." });
+    console.error("Erro ao buscar matches:", error);
+    res.status(500).json({ message: "Erro ao buscar matches." });
   }
 });
 
