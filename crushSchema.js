@@ -9,6 +9,7 @@ const crushSchema = new mongoose.Schema({
     type: [mongoose.Schema.Types.ObjectId],
     required: false,
   },
+  likedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 });
 
 const Crush = mongoose.model("Crush", crushSchema);

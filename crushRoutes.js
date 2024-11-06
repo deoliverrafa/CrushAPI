@@ -1,5 +1,4 @@
 import express from "express";
-import mongoose from "mongoose";
 import getConnection from "./connection.js";
 import userSchema from "./userSchema.js";
 
@@ -7,7 +6,7 @@ const router = express.Router();
 const dataBase = new getConnection();
 
 router.get("/users", async (req, res) => {
-  const { gender, userId } = req.body; 
+  const { gender, userId } = req.body;
 
   try {
     await dataBase.connect();
@@ -24,6 +23,49 @@ router.get("/users", async (req, res) => {
   } catch (error) {
     console.error("Erro ao buscar usuários:", error);
     res.status(500).json({ message: "Erro ao buscar usuários." });
+  }
+});
+
+router.post("/like", async (req, res) => {
+  const { userId, likedUserId } = req.body;
+
+  try {
+    await dataBase.connect();
+
+    const user = await userSchema.findByIdAndUpdate(
+      userId,
+      { $addToSet: { likedUsers: likedUserId } },
+      { new: true }
+    );
+
+    res.status(200).json({ message: "Usuário curtido com sucesso!", user });
+  } catch (error) {
+    console.error("Erro ao curtir o usuário:", error);
+    res.status(500).json({ message: "Erro ao curtir o usuário." });
+  }
+});
+
+router.get("/liked", async (req, res) => {
+  const { userId } = req.body;
+
+  try {
+    await dataBase.connect();
+
+    const user = await userSchema.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "Usuário não encontrado." });
+    }
+
+    const likedByUsers = await userSchema.find(
+      { _id: { $in: user.likedUsers } },
+      { password: 0 } 
+    );
+
+    res.status(200).json(likedByUsers);
+  } catch (error) {
+    console.error("Erro ao buscar usuários que curtiram:", error);
+    res.status(500).json({ message: "Erro ao buscar usuários que curtiram." });
   }
 });
 
