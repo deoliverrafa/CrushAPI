@@ -28,8 +28,9 @@ router.post('/login', async (req, res) => {
     if (!comparePassword) {
       return res.status(400).json({ message: "Senha incorreta, tente novamente.", logged: false });
     }
-
-    const token = jwt.sign({ user: userFinded }, process.env.JWT_SECRET, { expiresIn: '8h' });
+    const { password: _, ...userWithoutPassword } = userFinded.toObject();
+  
+    const token = jwt.sign({ user: userWithoutPassword }, process.env.JWT_SECRET, { expiresIn: '8h' });
 
     return res.status(200).json({ message: 'Autenticado com sucesso!', token, logged: true, userId: userFinded._id});
   } catch (error) {
