@@ -59,19 +59,19 @@ const userSchema = new mongoose.Schema({
   },
   messages: [
     {
-      type: mongoose.Schema.Types.ObjectId, 
+      type: mongoose.Schema.Types.ObjectId,
       ref: "Message",
     },
   ],
   following: [
     {
-      type: mongoose.Schema.Types.ObjectId, 
+      type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
   ],
   followers: [
     {
-      type: mongoose.Schema.Types.ObjectId, 
+      type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
   ],
@@ -94,9 +94,10 @@ const userSchema = new mongoose.Schema({
     required: true,
   },
   likedBy: {
-    type: [mongoose.Schema.Types.ObjectId], 
+    type: [mongoose.Schema.Types.ObjectId],
     required: false,
   },
+  likedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 });
 
 const User = mongoose.model("User", userSchema);

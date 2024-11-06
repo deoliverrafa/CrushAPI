@@ -367,6 +367,53 @@ router.post("/like", async (req, res) => {
   }
 });
 
+router.post("/unlike", async (req, res) => {
+  const { token, userId } = req.body;
+
+  try {
+    const decodedObj = jwt.verify(token, process.env.JWT_SECRET);
+
+    await dataBase.connect();
+
+    const user = await userSchema.findById(userId);
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: "Usuário não encontrado", found: false });
+    }
+
+    if (!user.likedBy.includes(decodedObj.user._id)) {
+      return res
+        .status(400)
+        .json({ message: "Você ainda não curtiu esse usuário", notLiked: true });
+    }
+
+    user.likedBy = user.likedBy.filter(
+      (userId) => userId.toString() !== decodedObj.user._id.toString()
+    );
+    user.likeCount = Math.max(user.likeCount - 1, 0);
+    await user.save();
+
+    return res.status(200).json({
+      message: "Like removido com sucesso",
+      likeCount: user.likeCount,
+      unLiked: true,
+    });
+  } catch (error) {
+    console.error("Erro capturado:", error);
+
+    if (error.name === "TokenExpiredError") {
+      return res
+        .status(403)
+        .json({ message: "Token Expirado", validToken: false });
+    }
+    return res
+      .status(403)
+      .json({ message: "Token Inválido", validToken: false });
+  }
+});
+
 router.get("/suggestions/:token", async (req, res) => {
   try {
     const { token } = req.params;
