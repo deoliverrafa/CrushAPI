@@ -3,6 +3,8 @@ import bcrypt from "bcrypt";
 import userSchema from "./userSchema.js";
 import getConnection from "./connection.js";
 import jwt from 'jsonwebtoken'
+import generateVerificationToken from "./generateVerificationToken.js";
+import { sendVerificationEmail } from "./sendEmailVerification.js";
 
 const router = express.Router();
 const dataBase = new getConnection();
@@ -104,6 +106,8 @@ router.post("/register", async (req, res) => {
 router.get('/email', async (req, res) => {
   try {
     await dataBase.connect();
+    console.log(req.query);
+    
     const user = await userSchema.findOne({ email: req.query.email });
 
     if (!user) {

@@ -9,7 +9,7 @@ export async function sendVerificationEmail(userEmail, token) {
         }
     });
 
-    const verificationUrl = `https://crush-api.vercel.app/auth/verify-email?token=${token}`;
+    const verificationUrl = `https://crushif.vercel.app/auth/verify?token=${token}`;
 
     const mailOptions = {
         from: 'deoliverrafa@gmail.com',
