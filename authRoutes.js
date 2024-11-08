@@ -2,7 +2,7 @@ import express from "express";
 import bcrypt from "bcrypt";
 import userSchema from "./userSchema.js";
 import getConnection from "./connection.js";
-import jwt from 'jsonwebtoken'
+import jwt from "jsonwebtoken";
 import generateVerificationToken from "./generateVerificationToken.js";
 import { sendVerificationEmail } from "./sendEmailVerification.js";
 
@@ -37,10 +37,19 @@ router.post("/login", async (req, res) => {
         .json({ message: "Senha incorreta, tente novamente.", logged: false });
     }
     const { password: _, ...userWithoutPassword } = userFinded.toObject();
-  
-    const token = jwt.sign({ user: userWithoutPassword }, process.env.JWT_SECRET, { expiresIn: '8h' });
 
-    return res.status(200).json({ message: 'Autenticado com sucesso!', token, logged: true, userId: userFinded._id});
+    const token = jwt.sign(
+      { user: userWithoutPassword },
+      process.env.JWT_SECRET,
+      { expiresIn: "8h" }
+    );
+
+    return res.status(200).json({
+      message: "Autenticado com sucesso!",
+      token,
+      logged: true,
+      userId: userFinded._id,
+    });
   } catch (error) {
     console.error("Erro ao fazer login:", error);
     return res
@@ -65,11 +74,9 @@ router.post("/register", async (req, res) => {
 
     if (existingUser != null) {
       if (existingUser.nickname == nickname) {
-        return res
-          .status(400)
-          .send({
-            message: "Nickname já está em uso. Por favor, escolha outro.",
-          });
+        return res.status(400).send({
+          message: "Nickname já está em uso. Por favor, escolha outro.",
+        });
       }
       if (existingUser.email == email) {
         return res.status(400).send({ message: "E-mail já está em uso." });
@@ -88,13 +95,19 @@ router.post("/register", async (req, res) => {
 
     await newUser.save();
 
-    return res
-      .status(201)
-      .json({
-        message: "Usuário cadastrado com sucesso!",
-        isRegistered: true,
-        user: newUser,
-      });
+    const token = generateVerificationToken();
+    newUser.emailVerificationToken = token;
+    newUser.emailVerificationExpires = Date.now() + 3600000; // 1 hora a partir de agora
+    await newUser.save();
+
+    // Envie o e-mail de verificação
+    await sendVerificationEmail(newUser.email, token);
+
+    return res.status(201).json({
+      message: "Usuário cadastrado com sucesso! Verifique seu e-mail.",
+      isRegistered: true,
+      user: newUser,
+    });
   } catch (error) {
     console.error("Erro ao registrar usuário:", error);
     return res
@@ -103,7 +116,7 @@ router.post("/register", async (req, res) => {
   }
 });
 
-router.get('/email', async (req, res) => {
+router.get("/email", async (req, res) => {
   try {
     await dataBase.connect();
     console.log(req.query);
@@ -111,7 +124,7 @@ router.get('/email', async (req, res) => {
     const user = await userSchema.findOne({ email: req.query.email });
 
     if (!user) {
-      return res.status(404).send('Usuário não encontrado');
+      return res.status(404).send("Usuário não encontrado");
     }
 
     // Gere o token e configure o tempo de expiração
@@ -123,26 +136,28 @@ router.get('/email', async (req, res) => {
     // Envie o e-mail de verificação
     await sendVerificationEmail(user.email, token);
 
-    res.send('E-mail de verificação enviado com sucesso!');
+    res.send("E-mail de verificação enviado com sucesso!");
   } catch (error) {
     console.error(error);
-    res.status(500).send(`Erro ao enviar o e-mail de verificação para ${req.query.email} `);
+    res
+      .status(500)
+      .send(`Erro ao enviar o e-mail de verificação para ${req.query.email} `);
   }
 });
 
-router.get('/verify-email', async (req, res) => {
+router.get("/verify-email", async (req, res) => {
   const { token } = req.query;
-  
+
   try {
     // Procure o usuário pelo token e verifique se o token ainda está válido
-    await dataBase.connect()
+    await dataBase.connect();
     const user = await userSchema.findOne({
       emailVerificationToken: token,
-      emailVerificationExpires: { $gt: Date.now() }
+      emailVerificationExpires: { $gt: Date.now() },
     });
 
     if (!user) {
-      return res.status(400).send('Token inválido ou expirado.');
+      return res.status(400).send("Token inválido ou expirado.");
     }
 
     user.emailVerified = true;
@@ -150,10 +165,10 @@ router.get('/verify-email', async (req, res) => {
     user.emailVerificationExpires = undefined;
     await user.save();
 
-    res.send('E-mail verificado com sucesso!');
+    res.send("E-mail verificado com sucesso!");
   } catch (error) {
     console.error(error);
-    res.status(500).send('Erro ao verificar o e-mail.');
+    res.status(500).send("Erro ao verificar o e-mail.");
   }
 });
 
