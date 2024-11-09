@@ -286,6 +286,70 @@ router.put("/unfollow", async (req, res) => {
   }
 });
 
+router.get("/following/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ message: "É preciso especificar um ID de usuário" });
+    }
+
+    // Conecta ao banco de dados
+    await dataBase.connect();
+
+    const user = await userSchema
+      .findById(userId)
+      .populate([
+        { path: "following", select: "nickname avatar userName type" },
+      ]);
+
+    if (!user) {
+      return res.status(404).json({ message: "Usuário não encontrado" });
+    }
+
+    return res.status(200).json({
+      following: user.following,
+    });
+  } catch (error) {
+    console.error("Erro ao obter usuários seguidos:", error);
+    return res.status(500).json({ message: "Erro ao obter dados", error });
+  }
+});
+
+router.get("/followers/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ message: "É preciso especificar um ID de usuário" });
+    }
+
+    // Conecta ao banco de dados
+    await dataBase.connect();
+
+    const user = await userSchema
+      .findById(userId)
+      .populate([
+        { path: "followers", select: "nickname avatar userName type" },
+      ]);
+
+    if (!user) {
+      return res.status(404).json({ message: "Usuário não encontrado" });
+    }
+
+    return res.status(200).json({
+      followers: user.followers,
+    });
+  } catch (error) {
+    console.error("Erro ao obter usuários seguidos:", error);
+    return res.status(500).json({ message: "Erro ao obter dados", error });
+  }
+});
+
 router.put("/status/:id", async (req, res) => {
   try {
     const queryId = req.params.id;
@@ -384,9 +448,10 @@ router.post("/unlike", async (req, res) => {
     }
 
     if (!user.likedBy.includes(decodedObj.user._id)) {
-      return res
-        .status(400)
-        .json({ message: "Você ainda não curtiu esse usuário", notLiked: true });
+      return res.status(400).json({
+        message: "Você ainda não curtiu esse usuário",
+        notLiked: true,
+      });
     }
 
     user.likedBy = user.likedBy.filter(
