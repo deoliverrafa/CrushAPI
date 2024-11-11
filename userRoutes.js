@@ -183,7 +183,7 @@ router.put("/follow", async (req, res) => {
       },
       { new: true }
     );
-
+    
     // Atualiza o usuário que está sendo seguido, adicionando o usuário logado ao array de followers
     const updatedFollowUser = await userSchema.findByIdAndUpdate(
       userFollowId,
@@ -213,7 +213,7 @@ router.put("/follow", async (req, res) => {
 router.put("/unfollow", async (req, res) => {
   try {
     const { token, unfollowId } = req.body;
-
+  
     if (!token) {
       return res.status(403).json({ message: "Sua sessão expirou" });
     }
@@ -260,7 +260,8 @@ router.put("/unfollow", async (req, res) => {
       return res
         .status(500)
         .json({ message: "Erro ao deixar de seguir usuário" });
-    }
+    } 
+    
 
     const updatedUnfollowUser = await userSchema.findByIdAndUpdate(
       unfollowId,
@@ -289,7 +290,7 @@ router.put("/unfollow", async (req, res) => {
 router.get("/following/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
-
+    
     if (!userId) {
       return res
         .status(400)
