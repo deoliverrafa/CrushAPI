@@ -52,7 +52,7 @@ const io = new SocketIO(server, {
     methods: ["GET", "POST", "PUT"],
     allowedHeaders: ["Content-Type", "Authorization"],
   },
-  transports: ["polling"],
+  transports: ["websocket"],
 });
 
 // Mapeia as salas com base no userId
