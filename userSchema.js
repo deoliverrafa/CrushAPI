@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
+    unique:true
   },
   emailVerified:{
     type: Boolean,
@@ -95,7 +96,6 @@ const userSchema = new mongoose.Schema({
   },
   likedBy: {
     type: [mongoose.Schema.Types.ObjectId],
-    required: false,
   },
   likedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 });

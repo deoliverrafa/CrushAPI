@@ -119,7 +119,6 @@ router.post("/register", async (req, res) => {
 router.get("/email", async (req, res) => {
   try {
     await dataBase.connect();
-    console.log(req.query);
     
     const user = await userSchema.findOne({ email: req.query.email });
 
