@@ -23,12 +23,7 @@ const app = express();
 const server = http.createServer(app);
 
 // Configuração do Socket.IO
-const corsOptions = {
-  origin: ["http://localhost:5173", "https://crushif.vercel.app"], // URL do seu front-end
-  methods: ["GET", "POST", "PUT"],
-  credentials: true,
-  allowedHeaders: ["Content-Type", "Authorization"],
-};
+const corsOptions = {};
 
 // Configuração do CORS
 app.use(cors(corsOptions));
