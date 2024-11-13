@@ -24,11 +24,17 @@ const server = http.createServer(app);
 
 // Configuração do Socket.IO
 const corsOptions = {
-  origin: ["http://localhost:5173", "https://crushif.vercel.app"], // URL do seu front-end
+  origin: ["http://localhost:5173", "https://crushif.vercel.app", "https://crush-api.vercel.app"], // URL do seu front-end
   methods: ["GET", "POST", "PUT"],
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization"],
 };
+
+app.use(cors({
+    origin: ["https://crushif.vercel.app", "https://crush-api.vercel.app"], // Adicione as URLs do front e do back
+    methods: ["GET", "POST"],
+    credentials: true // Permite cookies e headers de autenticação
+}));
 
 // Configuração do CORS
 app.use(cors(corsOptions));
