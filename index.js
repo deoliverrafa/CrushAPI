@@ -23,12 +23,7 @@ const app = express();
 const server = http.createServer(app);
 
 // Configuração do Socket.IO
-const io = new SocketIO(server, {
-    cors: {
-        origin: '*', // Ajuste conforme necessário
-        methods: ['GET', 'POST']
-    }
-});
+const io = new SocketIO(server, {});
 
 // Configuração do CORS
 app.use(cors());
@@ -110,7 +105,7 @@ io.on('connection', (socket) => {
             const index = userSockets[userId].indexOf(socket.id);
             if (index !== -1) {
                 userSockets[userId].splice(index, 1); // Remove o socket desconectado
-                
+
                 // Remover o socket de todas as salas associadas
                 for (let roomId in chatRooms) {
                     if (chatRooms[roomId].includes(userId)) {
