@@ -26,7 +26,7 @@ const server = http.createServer(app);
 const corsOptions = {
     origin: 'https://crushif.vercel.app', // URL do seu front-end
     methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization'],    
 };
 
 // Configuração do CORS
@@ -49,6 +49,7 @@ const io = new SocketIO(server, {
         origin: 'https://crushif.vercel.app', // URL do seu front-end
         methods: ['GET', 'POST'],
     },
+    transports: ['polling']
 });
 
 // Mapeia as salas com base no userId
