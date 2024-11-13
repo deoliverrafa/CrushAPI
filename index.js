@@ -24,7 +24,11 @@ const server = http.createServer(app);
 
 // Configuração do Socket.IO
 const corsOptions = {
-  origin: ["http://localhost:5173", "https://crushif.vercel.app", "https://crush-api.vercel.app", "wss://crush-api.vercel.app"], // URL do seu front-end
+  origin: [
+    "http://localhost:5173", // Para o ambiente de desenvolvimento
+    "https://crushif.vercel.app", // Para o ambiente de produção
+    "https://crush-api.vercel.app", // Para o ambiente de produção
+  ],
   methods: ["GET", "POST", "PUT"],
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization"],
@@ -47,12 +51,16 @@ app.use("/messages", messageRoutes);
 
 const io = new SocketIO(server, {
   cors: {
-    origin: ["http://localhost:5173", "https://crushif.vercel.app", "wss://crush-api.vercel.app"], // URL do seu front-end
+    origin: [
+      "http://localhost:5173", // Para o ambiente de desenvolvimento
+      "https://crushif.vercel.app", // Para o ambiente de produção
+      "https://crush-api.vercel.app", // Para o ambiente de produção
+    ],
     credentials: true,
     methods: ["GET", "POST", "PUT"],
     allowedHeaders: ["Content-Type", "Authorization"],
   },
-  transports: ["websocket"],
+  transports: ["websocket", "polling"],
 });
 
 // Mapeia as salas com base no userId
@@ -60,8 +68,8 @@ const userSockets = {}; // Para armazenar os socket ids
 const chatRooms = {}; // Para armazenar as salas de chat
 
 io.on("connection", (socket) => {
-  // Registrar os usuários e colocá-los em uma sala de chat específica  
-  
+  // Registrar os usuários e colocá-los em uma sala de chat específica
+
   socket.on("register", (userId) => {
     if (!userSockets[userId]) {
       userSockets[userId] = [];
