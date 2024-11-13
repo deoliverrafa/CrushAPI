@@ -25,7 +25,7 @@ const server = http.createServer(app);
 // Configuração do Socket.IO
 const corsOptions = {
   origin: ["http://localhost:5173", "https://crushif.vercel.app"], // URL do seu front-end
-  methods: ["GET", "POST"],
+  methods: ["GET", "POST", "PUT"],
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization"],
 };
@@ -49,7 +49,7 @@ const io = new SocketIO(server, {
   cors: {
     origin: ["http://localhost:5173", "https://crushif.vercel.app"], // URL do seu front-end
     credentials: true,
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "PUT"],
   },
   transports: ["polling"],
 });
