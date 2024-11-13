@@ -50,7 +50,6 @@ const userSockets = {};  // Para armazenar os socket ids
 const chatRooms = {};  // Para armazenar as salas de chat
 
 io.on('connection', (socket) => {
-
     // Registrar os usuários e colocá-los em uma sala de chat específica
     socket.on('register', (userId) => {
         if (!userSockets[userId]) {
@@ -81,7 +80,7 @@ io.on('connection', (socket) => {
         const { senderId, receiverId, content } = message;
         // Criação da chave única para a sala com base no userId
         const roomId = [senderId, receiverId].sort().join('_');
-
+        
         try {
             // Salvar a mensagem no banco de dados
             const newMessage = new Message({
@@ -90,7 +89,7 @@ io.on('connection', (socket) => {
                 content: content,
                 status: 'sent',
             });
-
+            
             await newMessage.save();
 
 
@@ -111,7 +110,7 @@ io.on('connection', (socket) => {
             const index = userSockets[userId].indexOf(socket.id);
             if (index !== -1) {
                 userSockets[userId].splice(index, 1); // Remove o socket desconectado
-
+                
                 // Remover o socket de todas as salas associadas
                 for (let roomId in chatRooms) {
                     if (chatRooms[roomId].includes(userId)) {
