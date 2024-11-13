@@ -23,10 +23,14 @@ const app = express();
 const server = http.createServer(app);
 
 // Configuração do Socket.IO
-const io = new SocketIO(server, {});
+const corsOptions = {
+    origin: 'https://crushif.vercel.app', // URL do seu front-end
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+};
 
 // Configuração do CORS
-app.use(cors());
+app.use(cors(corsOptions));
 
 // Middleware para JSON
 app.use(express.json());
@@ -40,9 +44,17 @@ app.use('/comment', commentRoutes);
 app.use('/crush', crushRoutes);
 app.use('/messages', messageRoutes)
 
+const io = new SocketIO(server, {
+    cors: {
+        origin: 'https://crushif.vercel.app', // URL do seu front-end
+        methods: ['GET', 'POST'],
+    },
+});
+
 // Mapeia as salas com base no userId
 const userSockets = {};  // Para armazenar os socket ids
 const chatRooms = {};  // Para armazenar as salas de chat
+
 
 io.on('connection', (socket) => {
     // Registrar os usuários e colocá-los em uma sala de chat específica
