@@ -303,7 +303,7 @@ router.get("/following/:userId", async (req, res) => {
     const user = await userSchema
       .findById(userId)
       .populate([
-        { path: "following", select: "nickname avatar userName type" },
+        { path: "following", select: "nickname avatar userName type status" },
       ]);
 
     if (!user) {
