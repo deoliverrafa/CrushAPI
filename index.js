@@ -47,7 +47,7 @@ app.use("/messages", messageRoutes);
 
 const io = new SocketIO(server, {
   cors: {
-    origin: ["http://localhost:5173", "https://crushif.vercel.app", "https://crushif.vercel.app"], // URL do seu front-end
+    origin: ["http://localhost:5173", "https://crushif.vercel.app", "https://crush-api.vercel.app"], // URL do seu front-end
     credentials: true,
     methods: ["GET", "POST", "PUT"],
   },
