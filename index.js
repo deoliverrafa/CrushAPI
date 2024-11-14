@@ -25,10 +25,8 @@ const server = http.createServer(app);
 // Configuração do Socket.IO
 const corsOptions = {
   origin: [
-    "http://localhost:5173", // Para o ambiente de desenvolvimento
-    "https://crushif.vercel.app", // Para o ambiente de produção
-    "https://crush-api.vercel.app", // Para o ambiente de produção
-    "https://crushapi-s3j9.onrender.com"
+    "http://localhost:5173",
+    "https://crushif-api.up.railway.app"
   ],
   methods: ["GET", "POST", "PUT"],
   credentials: true,
@@ -53,10 +51,8 @@ app.use("/messages", messageRoutes);
 const io = new SocketIO(server, {
   cors: {
     origin: [
-      "http://localhost:5173", // Para o ambiente de desenvolvimento
-      "https://crushif.vercel.app", // Para o ambiente de produção
-      "https://crush-api.vercel.app", // Para o ambiente de produção
-      "https://crushapi-s3j9.onrender.com"
+      "http://localhost:5173",
+      "https://crushif-api.up.railway.app"
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT"],
