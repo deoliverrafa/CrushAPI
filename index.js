@@ -26,7 +26,7 @@ const server = http.createServer(app);
 const corsOptions = {
   origin: [
     "http://localhost:5173",
-    "https://crushif-api.up.railway.app"
+    "https://crushif.vercel.app",
   ],
   methods: ["GET", "POST", "PUT"],
   credentials: true,
@@ -52,7 +52,7 @@ const io = new SocketIO(server, {
   cors: {
     origin: [
       "http://localhost:5173",
-      "https://crushif-api.up.railway.app"
+      "https://crushif.vercel.app"
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT"],
