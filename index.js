@@ -28,6 +28,7 @@ const corsOptions = {
     "http://localhost:5173", // Para o ambiente de desenvolvimento
     "https://crushif.vercel.app", // Para o ambiente de produção
     "https://crush-api.vercel.app", // Para o ambiente de produção
+    "https://crushapi-s3j9.onrender.com"
   ],
   methods: ["GET", "POST", "PUT"],
   credentials: true,
@@ -55,6 +56,7 @@ const io = new SocketIO(server, {
       "http://localhost:5173", // Para o ambiente de desenvolvimento
       "https://crushif.vercel.app", // Para o ambiente de produção
       "https://crush-api.vercel.app", // Para o ambiente de produção
+      "https://crushapi-s3j9.onrender.com"
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT"],
