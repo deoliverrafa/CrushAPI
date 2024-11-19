@@ -21,12 +21,15 @@ router.post("/login", async (req, res) => {
 
     await dataBase.connect();
 
-    const userFinded = await userSchema.findOne({ nickname });
+    // Busca por nickname ou email
+    const userFinded = await userSchema.findOne({
+      $or: [{ nickname }, { email: nickname }],
+    });
 
     if (!userFinded) {
       return res
         .status(400)
-        .json({ message: "Nickname não encontrado.", logged: false });
+        .json({ message: "Usuário ou e-mail não encontrado.", logged: false });
     }
 
     const comparePassword = await bcrypt.compare(password, userFinded.password);
@@ -36,6 +39,7 @@ router.post("/login", async (req, res) => {
         .status(400)
         .json({ message: "Senha incorreta, tente novamente.", logged: false });
     }
+
     const { password: _, ...userWithoutPassword } = userFinded.toObject();
 
     const token = jwt.sign(
@@ -119,7 +123,7 @@ router.post("/register", async (req, res) => {
 router.get("/email", async (req, res) => {
   try {
     await dataBase.connect();
-    
+
     const user = await userSchema.findOne({ email: req.query.email });
 
     if (!user) {
