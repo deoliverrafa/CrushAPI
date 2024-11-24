@@ -28,7 +28,7 @@ const corsOptions = {
     "http://localhost:5173",
     "https://crushif.vercel.app",
   ],
-  methods: ["GET", "POST", "PUT"],
+  methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization"],
 };
@@ -55,7 +55,7 @@ const io = new SocketIO(server, {
       "https://crushif.vercel.app"
     ],
     credentials: true,
-    methods: ["GET", "POST", "PUT"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   },
   transports: ["websocket", "polling"],

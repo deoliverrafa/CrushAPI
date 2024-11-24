@@ -8,6 +8,7 @@ import cloudinary from "./cloudinary.js";
 import userSchema from "./userSchema.js";
 import postSchema from "./postSchema.js";
 import getConnection from "./connection.js";
+import Comment from "./commentSchema.js";
 
 const router = express.Router();
 const dataBase = new getConnection();
@@ -398,6 +399,43 @@ router.get("/saved/:token/:skip/:limit", async (req, res) => {
     return res
       .status(403)
       .json({ message: "Token Inválido", validToken: false });
+  }
+});
+
+router.delete("/deletePost", async (req, res) => {
+  try {
+    const { token, postId } = req.body;
+  
+    if (!token) {
+      return res.status(400).json({ message: "Token é necessário" });
+    }
+
+    let decodedObj;
+    try {
+      decodedObj = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+      return res.status(403).json({ message: "Token Inválido ou Expirado" });
+    }
+
+    await dataBase.connect();
+
+    const post = await postSchema.findById(postId);
+
+    if (!post) {
+      return res.status(404).json({ message: "Post não encontrado" });
+    }
+    
+    await Comment.deleteMany({ _id: { $in: post.comments } });
+
+    // Delete o post
+    await postSchema.findByIdAndDelete(postId);
+
+    return res
+      .status(200)
+      .json({ message: "Post e comentários deletados com sucesso", deleted: true });
+  } catch (error) {
+    console.error("Erro ao deletar post e comentários:", error);
+    return res.status(500).json({ message: "Erro no servidor" });
   }
 });
 
