@@ -33,11 +33,11 @@ const extractHashtagsAndMentions = async (content) => {
   return { hashtags: hashtagsList, mentionedUsers };
 };
 
-router.post("/publish/:token", upload.single("photo"), async (req, res) => {
+router.post("/publish/:token", upload.array("photos", 5), async (req, res) => {
   try {
     const token = req.params.token;
     const { content, isAnonymous } = req.body;
-    const photo = req.file;
+    const photos = req.files;
 
     if (!content) {
       return res
@@ -67,11 +67,11 @@ router.post("/publish/:token", upload.single("photo"), async (req, res) => {
       content
     );
 
-    const savePost = async (photoURL = null) => {
+    const savePost = async (photoURLs = null) => {
       const postToSave = {
         content,
         isAnonymous,
-        photoURL,
+        photoURLs,
         userId: decodedObj.user._id,
         hashtags,
         mentionedUsers,
@@ -85,26 +85,41 @@ router.post("/publish/:token", upload.single("photo"), async (req, res) => {
     };
 
     // Verificar se a foto foi enviada
-    if (photo) {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        { folder: "posts" },
-        (error, result) => {
-          if (error) {
-            console.error("Erro ao realizar upload da imagem:", error);
-            return res
-              .status(500)
-              .json({ message: "Erro ao realizar upload da imagem" });
-          }
-          savePost(result.url);
-        }
-      );
+    if (photos && photos.length > 0) {
+      const photoURLs = [];
 
-      const readablePhotoStream = new Readable();
-      readablePhotoStream.push(photo.buffer);
-      readablePhotoStream.push(null);
-      readablePhotoStream.pipe(uploadStream);
+      const uploadPromises = photos.map((photo) => {
+        return new Promise((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            { folder: "posts" },
+            (error, result) => {
+              if (error) {
+                console.error("Erro ao realizar upload da imagem:", error);
+                reject(error);
+              } else {
+                resolve(result.url);
+              }
+            }
+          );
+
+          const readablePhotoStream = new Readable();
+          readablePhotoStream.push(photo.buffer);
+          readablePhotoStream.push(null);
+          readablePhotoStream.pipe(uploadStream);
+        });
+      });
+
+      try {
+        const uploadedURLs = await Promise.all(uploadPromises);
+        photoURLs.push(...uploadedURLs);
+        savePost(photoURLs);
+      } catch (error) {
+        return res
+          .status(500)
+          .json({ message: "Erro ao realizar upload das imagens" });
+      }
     } else {
-      savePost();
+      savePost([]);
     }
   } catch (error) {
     console.error("Error processing request:", error);
@@ -246,7 +261,7 @@ router.get("/id/:id", async (req, res) => {
         references: "Deletado",
         content: "Deletado",
         isAnonymous: false,
-        photoURL: "Deletado",
+        photoURLs: "Deletado",
         userAvatar: "Deletado",
         userId: "Deletado",
         likeCount: 0,
