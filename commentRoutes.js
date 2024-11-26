@@ -56,7 +56,7 @@ router.post("/comment", async (req, res) => {
     });
 
     post.comments.push(newComment._id);
-    post.commentCount = post.comments.length;
+    post.commentCount += 1;
 
     await post.save();
 
@@ -265,6 +265,8 @@ router.post("/reply", async (req, res) => {
 
     const post = await postSchema.findById(postId);
 
+    console.log("Outro",post);
+    
     if (!post) {
       return res.status(404).json({
         message: "Post não encontrado",
@@ -285,7 +287,7 @@ router.post("/reply", async (req, res) => {
 
     parentComment.replies.push(replyComment._id);
 
-    post.commentCount = post.comments.length + 1;
+    post.commentCount += 1;
 
     await post.save();
     await parentComment.save();
