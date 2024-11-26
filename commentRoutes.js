@@ -271,14 +271,13 @@ router.post("/reply", async (req, res) => {
       hashtags,
       mentionedUsers,
     });
-
     parentComment.replies.push(replyComment._id);
     await parentComment.save();
 
     return res.status(200).json({
       message: "Resposta postada",
       posted: true,
-      replyId: replyComment._id,
+      reply: replyComment
     });
   } catch (error) {
     console.error("Erro capturado:", error);
