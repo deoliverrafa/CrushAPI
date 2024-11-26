@@ -248,15 +248,26 @@ router.post("/unlike", async (req, res) => {
 
 router.post("/reply", async (req, res) => {
   try {
-    const { content, commentId, token, userId } = req.body;
+    const { content, commentId, token, userId, postId } = req.body;
 
     jwt.verify(token, process.env.JWT_SECRET);
+
     await dataBase.connect();
 
     const parentComment = await commentSchema.findById(commentId);
+
     if (!parentComment) {
       return res.status(404).json({
         message: "Comentário não encontrado",
+        posted: false,
+      });
+    }
+
+    const post = await postSchema.findById(postId);
+
+    if (!post) {
+      return res.status(404).json({
+        message: "Post não encontrado",
         posted: false,
       });
     }
@@ -271,13 +282,18 @@ router.post("/reply", async (req, res) => {
       hashtags,
       mentionedUsers,
     });
+
     parentComment.replies.push(replyComment._id);
+
+    post.commentCount = post.comments.length + 1;
+
+    await post.save();
     await parentComment.save();
 
     return res.status(200).json({
       message: "Resposta postada",
       posted: true,
-      reply: replyComment
+      reply: replyComment,
     });
   } catch (error) {
     console.error("Erro capturado:", error);
