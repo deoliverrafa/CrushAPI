@@ -36,7 +36,7 @@ router.get('/:user1Id/:user2Id', async (req, res) => {
                 { senderId: user1Id, receiverId: user2Id },
                 { senderId: user2Id, receiverId: user1Id },
             ],
-        }).sort({ insertAt: 1 });
+        });
 
         res.status(200).json(messages);
     } catch (error) {

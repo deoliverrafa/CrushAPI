@@ -404,8 +404,10 @@ router.get("/saved/:token/:skip/:limit", async (req, res) => {
 
 router.delete("/deletePost", async (req, res) => {
   try {
+    
     const { token, postId } = req.body;
-  
+    
+    
     if (!token) {
       return res.status(400).json({ message: "Token é necessário" });
     }
