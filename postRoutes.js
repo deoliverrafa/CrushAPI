@@ -34,6 +34,30 @@ const extractHashtagsAndMentions = async (content) => {
   return { hashtags: hashtagsList, mentionedUsers };
 };
 
+const sendNotificationToUser = (user, title, body) => {
+  // Verificar se o navegador suporta notificações
+  if (typeof Notification !== "undefined") {
+    if (Notification.permission === "granted") {
+      new Notification(title, {
+        body,
+        icon: "/path/to/icon.png", // Ícone opcional para a notificação
+      });
+    } else if (Notification.permission !== "denied") {
+      Notification.requestPermission().then((permission) => {
+        if (permission === "granted") {
+          new Notification(title, {
+            body,
+            icon: "/path/to/icon.png",
+          });
+        }
+      });
+    }
+  } else {
+    console.warn("Navegador não suporta notificações.");
+  }
+};
+
+
 router.post("/publish/:token", upload.array("photos", 5), async (req, res) => {
   try {
     const token = req.params.token;
@@ -79,6 +103,18 @@ router.post("/publish/:token", upload.array("photos", 5), async (req, res) => {
       };
 
       await postSchema.create(postToSave);
+
+      mentionedUsers.forEach(async (userId) => {
+        const mentionedUser = await userSchema.findById(userId);
+        if (mentionedUser) {
+          // Supondo que você tenha um campo `nickname` no esquema do usuário
+          const title = "Você foi mencionado!";
+          const body = `${userFound.nickname} mencionou você em uma publicação: "${content}"`;
+
+          // Função para enviar notificação do navegador
+          sendNotificationToUser(mentionedUser, title, body);
+        }
+      });
 
       return res
         .status(200)
@@ -404,10 +440,10 @@ router.get("/saved/:token/:skip/:limit", async (req, res) => {
 
 router.delete("/deletePost", async (req, res) => {
   try {
-    
+
     const { token, postId } = req.body;
-    
-    
+
+
     if (!token) {
       return res.status(400).json({ message: "Token é necessário" });
     }
@@ -426,7 +462,7 @@ router.delete("/deletePost", async (req, res) => {
     if (!post) {
       return res.status(404).json({ message: "Post não encontrado" });
     }
-    
+
     await Comment.deleteMany({ _id: { $in: post.comments } });
 
     // Delete o post
