@@ -24,10 +24,7 @@ const server = http.createServer(app);
 
 // Configuração do Socket.IO
 const corsOptions = {
-  origin: [
-    "http://localhost:5173",
-    "https://crushif.vercel.app",
-  ],
+  origin: ["http://localhost:5173", "https://crushif.vercel.app"],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization"],
@@ -50,10 +47,7 @@ app.use("/messages", messageRoutes);
 
 const io = new SocketIO(server, {
   cors: {
-    origin: [
-      "http://localhost:5173",
-      "https://crushif.vercel.app"
-    ],
+    origin: ["http://localhost:5173", "https://crushif.vercel.app"],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -75,64 +69,86 @@ io.on("connection", (socket) => {
     userSockets[userId].push(socket.id);
   });
 
-  // Função para criar uma sala de chat entre dois usuários
   socket.on("joinChatRoom", (userId1, userId2) => {
-    // Criar uma chave única para a sala (usando userIds combinados)
-    const roomId = [userId1, userId2].sort().join("_"); // Garante uma chave única
+    const roomId = [userId1, userId2].sort().join("_");
 
-    // Verificar se a sala já existe, se não, cria
     if (!chatRooms[roomId]) {
       chatRooms[roomId] = [userId1, userId2];
     }
 
-    // Adicionar os sockets dos dois usuários na sala
     socket.join(roomId);
 
-    // Emitir para o cliente que ele entrou na sala
     socket.emit("roomJoined", roomId);
   });
 
-  // Enviar mensagem para todos os usuários na sala
   socket.on("sendMessage", async (message) => {
-    const { senderId, receiverId, content } = message;
-    // Criação da chave única para a sala com base no userId
-    const roomId = [senderId, receiverId].sort().join("_");
-
     try {
-      // Salvar a mensagem no banco de dados
-      const newMessage = new Message({
-        senderId: senderId,
-        receiverId: receiverId,
-        content: content,
-        status: "sent",
-      });
-
-      await newMessage.save();
-
-      // Emitir a mensagem para todos os usuários na sala (somente os dois usuários)
-      io.to(roomId).emit("newMessage", newMessage);
-
-      // Emitir a resposta ao cliente que enviou a mensagem (se necessário)
-      socket.emit("messageSent", newMessage);
+      const roomId = [message.senderId, message.receiverId].sort().join("_");
+      const savedMessage = await Message.create(message);
+      io.to(roomId).emit("newMessage", savedMessage);
     } catch (error) {
-      console.error("Erro ao enviar a mensagem:", error);
-      socket.emit("error", "Erro ao enviar a mensagem");
+      console.error("Erro ao salvar ou enviar mensagem:", error);
+    }
+  });
+
+  socket.on("markAsRead", async ({ senderId, receiverId }) => {
+    try {
+      await Message.updateMany(
+        { senderId, receiverId, status: "sent" },
+        { $set: { status: "read" } }
+      );
+
+      io.to(senderId).emit("messagesUpdated", { receiverId });
+    } catch (error) {
+      console.error("Erro ao marcar mensagens como lidas", error);
+    }
+  });
+
+  socket.on("messageReceived", async (messageId) => {
+    try {
+      const message = await Message.findByIdAndUpdate(
+        messageId,
+        { status: "received" },
+        { new: true }
+      );
+      if (message) {
+        io.to(userSockets[message.senderId]).emit("messageStatusUpdated", {
+          messageId: message._id,
+          status: "received",
+        });
+      }
+    } catch (err) {
+      console.error("Erro ao atualizar status para 'received':", err);
+    }
+  });
+
+  socket.on("messageRead", async ({ senderId, receiverId }) => {
+    try {
+      const updatedMessages = await Message.updateMany(
+        {
+          senderId,
+          receiverId,
+          status: { $in: ["sent", "received"] },
+        },
+        { status: "read" }
+      );
+      if (updatedMessages.modifiedCount > 0) {
+        io.to(userSockets[senderId]).emit("messagesUpdated", {
+          receiverId,
+          status: "read",
+        });
+      }
+    } catch (err) {
+      console.error("Erro ao atualizar status para 'read':", err);
     }
   });
 
   // Remover o usuário do mapeamento quando desconectar
   socket.on("disconnect", () => {
-    for (let userId in userSockets) {
-      const index = userSockets[userId].indexOf(socket.id);
-      if (index !== -1) {
-        userSockets[userId].splice(index, 1); // Remove o socket desconectado
-
-        // Remover o socket de todas as salas associadas
-        for (let roomId in chatRooms) {
-          if (chatRooms[roomId].includes(userId)) {
-            socket.leave(roomId);
-          }
-        }
+    for (const [userId, sockets] of Object.entries(userSockets)) {
+      userSockets[userId] = sockets.filter((id) => id !== socket.id);
+      if (userSockets[userId].length === 0) {
+        delete userSockets[userId];
       }
     }
   });
