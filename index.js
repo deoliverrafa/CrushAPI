@@ -22,22 +22,13 @@ import messageRoutes from "./messageRoute.js";
 const app = express();
 const server = http.createServer(app);
 
+// Configuração do Socket.IO
 const corsOptions = {
   origin: ["http://localhost:5173", "https://crushif.vercel.app"],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization"],
 };
-
-const io = new SocketIO(server, {
-  cors: {
-    origin: ["http://localhost:5173", "https://crushif.vercel.app"],
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  },
-  transports: ["websocket", "polling"],
-});
 
 // Configuração do CORS
 app.use(cors(corsOptions));
@@ -54,6 +45,16 @@ app.use("/comment", commentRoutes);
 app.use("/crush", crushRoutes);
 app.use("/messages", messageRoutes);
 
+const io = new SocketIO(server, {
+  cors: {
+    origin: ["http://localhost:5173", "https://crushif.vercel.app"],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  },
+  transports: ["websocket", "polling"],
+});
+
 // Mapeia as salas com base no userId
 const userSockets = {}; // Para armazenar os socket ids
 const chatRooms = {}; // Para armazenar as salas de chat
@@ -68,17 +69,27 @@ io.on("connection", (socket) => {
     userSockets[userId].push(socket.id);
   });
 
-  socket.on("joinRoom", ({ senderId, receiverId }) => {
-    const roomName = [senderId, receiverId].sort().join("-");
-    socket.join(roomName);
+  socket.on("joinChatRoom", (userId1, userId2) => {
+    const roomId = [userId1, userId2].sort().join("_");
 
-    // Rastrear os usuários conectados na sala
-    if (!activeUsersInRooms[roomName]) {
-      activeUsersInRooms[roomName] = new Set();
+    if (!chatRooms[roomId]) {
+      chatRooms[roomId] = [userId1, userId2];
     }
-    activeUsersInRooms[roomName].add(senderId);
 
-    chatRooms[socket.id] = roomName;
+    socket.join(roomId);
+
+    socket.emit("roomJoined", roomId);
+  });
+
+  // Entrar na sala de chat
+  socket.on("joinRoom", ({ senderId, receiverId }) => {
+    try {
+      const roomName = [senderId, receiverId].sort().join("-");
+      socket.join(roomName);
+      chatRooms[socket.id] = roomName;
+    } catch (error) {
+      console.error("Erro ao entrar na sala", error);
+    }
   });
 
   socket.on("sendMessage", async (message) => {
@@ -91,31 +102,109 @@ io.on("connection", (socket) => {
     }
   });
 
+  // socket.on("markAsRead", async ({ senderId, receiverId }) => {
+  //   try {
+  //     await Message.updateMany(
+  //       { senderId, receiverId, status: "sent" },
+  //       { $set: { status: "read" } }
+  //     );
+
+  //     io.to(senderId).emit("messagesUpdated", { receiverId });
+  //   } catch (error) {
+  //     console.error("Erro ao marcar mensagens como lidas", error);
+  //   }
+  // });
+
+  // socket.on("messageRead", async ({ senderId, receiverId }) => {
+  //   try {
+  //     const updatedMessages = await Message.updateMany(
+  //       {
+  //         senderId,
+  //         receiverId,
+  //         status: { $in: ["sent", "received"] },
+  //       },
+  //       { status: "read" }
+  //     );
+  //     if (updatedMessages.modifiedCount > 0) {
+  //       io.to(userSockets[senderId]).emit("messagesUpdated", {
+  //         receiverId,
+  //         status: "read",
+  //       });
+  //     }
+  //   } catch (err) {
+  //     console.error("Erro ao atualizar status para 'read':", err);
+  //   }
+  // });
+
+  socket.on("messageReceived", async (messageId) => {
+    try {
+      const message = await Message.findByIdAndUpdate(
+        messageId,
+        { status: "received" },
+        { new: true }
+      );
+      if (message) {
+        io.to(userSockets[message.senderId]).emit("messageStatusUpdated", {
+          messageId: message._id,
+          status: "received",
+        });
+      }
+    } catch (err) {
+      console.error("Erro ao atualizar status para 'received':", err);
+    }
+  });
+
+  // socket.on("messageRead", async (messageId) => {
+  //   try {
+  //     console.log("Id mensagem",messageId);
+      
+  //     const message = await Message.findByIdAndUpdate(
+  //       messageId,
+  //       { status: "read" },
+  //       { new: true }
+  //     );
+  //     console.log(message)
+  //     if (message) {
+  //       io.to(userSockets[message.senderId]).emit("messageReadStatus", {
+  //         messageId: message._id,
+  //         status: "read",
+  //       });
+  //     }
+  //   } catch (err) {
+  //     console.error("Erro ao atualizar status para 'read':", err);
+  //   }
+  // });
 
   socket.on("markMessagesAsRead", async ({ senderId, receiverId }) => {
     const roomName = [senderId, receiverId].sort().join("-");
 
-    // Verificar se o destinatário está ativo na sala
-    if (activeUsersInRooms[roomName] && activeUsersInRooms[roomName].has(receiverId)) {
+    // Verificar se o socket está na sala correta
+    if (chatRooms[socket.id] === roomName) {
       try {
+        // Marcar mensagens como lidas no banco de dados
         await Message.updateMany(
-          { senderId: receiverId, receiverId: senderId, status: "sent" },
+          { senderId: receiverId, receiverId: senderId, status: "received" },
           { status: "read" }
         );
-        
-        // Atualizar mensagens no front-end
-        io.to(roomName).emit("messagesUpdated", { receiverId: senderId });
+
+        // Emitir um evento para atualizar o status no front-end
+        io.to(roomName).emit("messagesUpdated", {
+          receiverId: senderId,
+          status: "read",
+        });
       } catch (error) {
         console.error("Erro ao marcar mensagens como lidas:", error);
       }
-    }
+                }
   });
 
   // Remover o usuário do mapeamento quando desconectar
   socket.on("disconnect", () => {
-    const roomName = chatRooms[socket.id];
-    if (roomName && activeUsersInRooms[roomName]) {
-      activeUsersInRooms[roomName].delete(senderId);
+    for (const [userId, sockets] of Object.entries(userSockets)) {
+      userSockets[userId] = sockets.filter((id) => id !== socket.id);
+      if (userSockets[userId].length === 0) {
+        delete userSockets[userId];
+      }
     }
     delete chatRooms[socket.id];
   });
