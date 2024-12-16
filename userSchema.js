@@ -13,93 +13,108 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    unique:true
+    unique: true
   },
-  emailVerified:{
+  emailVerified: {
     type: Boolean,
     default: false
-  },
-  emailVerificationToken: {
-    type: String,
-  },
-  emailVerificationExpires: {
-    type: Date,
-  },
-  password: {
-    type: String,
-    required: true,
-  },
-  birthdaydata: {
-    type: String,
-  },
-  gender: {
-    type: String,
-  },
-  campus: {
-    type: String,
-  },
-  insertAt: {
-    type: Date,
+    },
+    emailVerificationToken: {
+      type: String,
+    },
+    emailVerificationExpires: {
+      type: Date,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+    birthdaydata: {
+      type: String,
+    },
+    gender: {
+      type: String,
+    },
+    campus: {
+      type: String,
+    },
+    insertAt: {
+      type: Date,
     default: () => new Date(),
-  },
-  type: {
-    type: String,
-  },
-  avatar: {
-    type: String,
-  },
-  banner: {
-    type: String,
-  },
-  curso: {
-    type: String,
-  },
-  bio: {
-    type: String,
+    },
+    type: {
+      type: String,
+    },
+    avatar: {
+      type: String,
+    },
+    banner: {
+      type: String,
+    },
+    curso: {
+      type: String,
+    },
+    bio: {
+      type: String,
     default: "",
-  },
-  messages: [
-    {
+    },
+    messages: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: "Message",
     },
-  ],
-  following: [
-    {
+    ],
+    following: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-  ],
-  followers: [
-    {
+    ],
+    followers: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-  ],
-  Nfollowing: {
-    type: Number,
+    ],
+    Nfollowing: {
+      type: Number,
     default: 0,
-  },
-  Nfollowers: {
-    type: Number,
+    },
+    Nfollowers: {
+      type: Number,
     default: 0,
-  },
-  status: {
-    type: String,
-    enum: ["online", "offline"],
+    },
+    status: {
+      type: String,
+      enum: ["online", "offline"],
     default: "offline",
-  },
-  likeCount: {
-    type: Number,
-    default: 0,
-    required: true,
-  },
-  likedBy: {
-    type: [mongoose.Schema.Types.ObjectId],
-  },
-  likedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-});
+    },
+    private: {
+      type: Boolean,
+    default: false,
+    },
+    link: {
+      type: String,
+    },
+    instagram: {
+      type: String,
+    },
+    facebook: {
+      type: String,
+    },
+    twitter: {
+      type: String,
+    },
+    likeCount: {
+      type: Number,
+      default: 0,
+      required: true,
+    },
+    likedBy: {
+      type: [mongoose.Schema.Types.ObjectId],
+    },
+    likedUsers: [{
+      type: mongoose.Schema.Types.ObjectId, ref: "User"
+    }],
+  });
 
-const User = mongoose.model("User", userSchema);
+  const User = mongoose.model("User", userSchema);
 
-export default User;
+  export default User;
