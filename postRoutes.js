@@ -421,7 +421,7 @@ router.get("/saved/:token/:skip/:limit", async (req, res) => {
         .status(404)
         .json({ message: "Nenhum post curtido encontrado." });
     }
-
+    
     return res.status(200).json({ likedPosts });
   } catch (error) {
     console.error("Erro ao buscar posts curtidos:", error);
