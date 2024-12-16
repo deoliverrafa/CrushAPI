@@ -157,7 +157,7 @@ io.on("connection", (socket) => {
   // socket.on("messageRead", async (messageId) => {
   //   try {
   //     console.log("Id mensagem",messageId);
-      
+
   //     const message = await Message.findByIdAndUpdate(
   //       messageId,
   //       { status: "read" },
@@ -195,7 +195,7 @@ io.on("connection", (socket) => {
       } catch (error) {
         console.error("Erro ao marcar mensagens como lidas:", error);
       }
-                }
+    }
   });
 
   // Remover o usuário do mapeamento quando desconectar
