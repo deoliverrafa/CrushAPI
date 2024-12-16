@@ -92,15 +92,19 @@ const userSchema = new mongoose.Schema({
     },
     link: {
       type: String,
+      default: "",
     },
     instagram: {
       type: String,
+      default: "",
     },
     facebook: {
       type: String,
+      default: "",
     },
     twitter: {
       type: String,
+      default: "",
     },
     likeCount: {
       type: Number,
