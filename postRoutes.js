@@ -1,4 +1,6 @@
-import { Readable } from "stream";
+import {
+  Readable
+} from "stream";
 import express from "express";
 import multer from "multer";
 import jwt from "jsonwebtoken";
@@ -14,7 +16,9 @@ const router = express.Router();
 const dataBase = new getConnection();
 
 const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+const upload = multer( {
+  storage: storage
+});
 
 const extractHashtagsAndMentions = async (content) => {
   const hashtags = content.match(/#[\w]+/g) || [];
@@ -25,13 +29,18 @@ const extractHashtagsAndMentions = async (content) => {
   const mentionedUsers = [];
   for (const mention of mentions) {
     const userName = mention.slice(1);
-    const user = await userSchema.findOne({ nickname: userName });
+    const user = await userSchema.findOne({
+      nickname: userName
+    });
     if (user) {
       mentionedUsers.push(user._id);
     }
   }
 
-  return { hashtags: hashtagsList, mentionedUsers };
+  return {
+    hashtags: hashtagsList,
+    mentionedUsers
+  };
 };
 
 const sendNotificationToUser = (user, title, body) => {
@@ -61,34 +70,47 @@ const sendNotificationToUser = (user, title, body) => {
 router.post("/publish/:token", upload.array("photos", 5), async (req, res) => {
   try {
     const token = req.params.token;
-    const { content, isAnonymous } = req.body;
+    const {
+      content, isAnonymous
+    } = req.body;
     const photos = req.files;
 
     if (!content) {
       return res
-        .status(400)
-        .json({ message: "Insira um conteúdo na publicação" });
+      .status(400)
+      .json({
+        message: "Insira um conteúdo na publicação"
+      });
     }
 
     if (isAnonymous !== "true" && isAnonymous !== "false") {
       return res
-        .status(400)
-        .json({ message: "É necessário definir o tipo da postagem" });
+      .status(400)
+      .json({
+        message: "É necessário definir o tipo da postagem"
+      });
     }
 
     if (!token) {
       return res
-        .status(400)
-        .json({ message: "É necessário passar o id do usuário para postagem" });
+      .status(400)
+      .json({
+        message: "É necessário passar o id do usuário para postagem"
+      });
     }
 
     await dataBase.connect();
 
     const decodedObj = jwt.decode(token, process.env.JWT_SECRET);
-    const userFound = await userSchema.findOne({ _id: decodedObj.user._id });
+    const userFound = await userSchema.findOne({
+      _id: decodedObj.user._id
+    });
 
     // Extrair hashtags e menções do conteúdo
-    const { hashtags, mentionedUsers } = await extractHashtagsAndMentions(
+    const {
+      hashtags,
+      mentionedUsers
+    } = await extractHashtagsAndMentions(
       content
     );
 
@@ -117,8 +139,11 @@ router.post("/publish/:token", upload.array("photos", 5), async (req, res) => {
       });
 
       return res
-        .status(200)
-        .json({ message: "Dados recebidos com sucesso!", posted: true });
+      .status(200)
+      .json({
+        message: "Dados recebidos com sucesso!",
+        posted: true
+      });
     };
 
     // Verificar se a foto foi enviada
@@ -128,7 +153,9 @@ router.post("/publish/:token", upload.array("photos", 5), async (req, res) => {
       const uploadPromises = photos.map((photo) => {
         return new Promise((resolve, reject) => {
           const uploadStream = cloudinary.uploader.upload_stream(
-            { folder: "posts" },
+            {
+              folder: "posts"
+            },
             (error, result) => {
               if (error) {
                 console.error("Erro ao realizar upload da imagem:", error);
@@ -152,20 +179,28 @@ router.post("/publish/:token", upload.array("photos", 5), async (req, res) => {
         savePost(photoURLs);
       } catch (error) {
         return res
-          .status(500)
-          .json({ message: "Erro ao realizar upload das imagens" });
+        .status(500)
+        .json({
+          message: "Erro ao realizar upload das imagens"
+        });
       }
     } else {
       savePost([]);
     }
   } catch (error) {
     console.error("Error processing request:", error);
-    return res.status(500).json({ error: "Erro ao processar a solicitação" });
+    return res.status(500).json({
+      error: "Erro ao processar a solicitação"
+    });
   }
 });
 
 router.get("/get/:token/:skip/:limit", async (req, res) => {
-  const { token, skip, limit } = req.params;
+  const {
+    token,
+    skip,
+    limit
+  } = req.params;
 
   let decodedObj;
 
@@ -174,23 +209,31 @@ router.get("/get/:token/:skip/:limit", async (req, res) => {
   } catch (error) {
     if (error.name == "TokenExpiredError") {
       return res
-        .status(403)
-        .json({ message: "Token Expirado", validToken: false });
+      .status(403)
+      .json({
+        message: "Token Expirado", validToken: false
+      });
     }
     return res
-      .status(403)
-      .json({ message: "Token Inválido", validToken: false });
+    .status(403)
+    .json({
+      message: "Token Inválido", validToken: false
+    });
   }
 
   if (!skip || isNaN(skip)) {
     return res
-      .status(400)
-      .json({ message: "É necessário repassar um skip válido" });
+    .status(400)
+    .json({
+      message: "É necessário repassar um skip válido"
+    });
   }
   if (!limit || isNaN(limit)) {
     return res
-      .status(400)
-      .json({ message: "É necessário repassar um limit válido" });
+    .status(400)
+    .json({
+      message: "É necessário repassar um limit válido"
+    });
   }
   if (!token) {
     return res.status(400).json({
@@ -206,10 +249,12 @@ router.get("/get/:token/:skip/:limit", async (req, res) => {
     const limitValue = parseInt(limit);
 
     const posts = await postSchema
-      .find()
-      .sort({ insertAt: -1 })
-      .skip(skipValue)
-      .limit(limitValue);
+    .find()
+    .sort({
+      insertAt: -1
+    })
+    .skip(skipValue)
+    .limit(limitValue);
 
     if (!posts) {
       return res.status(500).json({
@@ -217,35 +262,46 @@ router.get("/get/:token/:skip/:limit", async (req, res) => {
       });
     }
 
-    return res.status(200).json({ posts });
+    return res.status(200).json({
+      posts
+    });
   } catch (error) {
     console.error("Erro ao recuperar posts:", error);
     return res.status(500).json({
       message: "Ocorreu um erro ao recuperar os posts. Tente novamente.",
     });
-  } finally {
-  }
+  } finally {}
 });
 
 router.get("/get/user/:userId/:skip/:limit", async (req, res) => {
-  const { userId, skip, limit } = req.params;
+  const {
+    userId,
+    skip,
+    limit
+  } = req.params;
 
   let decodedObj;
 
   if (!userId) {
     return res
-      .status(400)
-      .json({ message: "É necessário repassar um userId válido" });
+    .status(400)
+    .json({
+      message: "É necessário repassar um userId válido"
+    });
   }
   if (!skip || isNaN(skip)) {
     return res
-      .status(400)
-      .json({ message: "É necessário repassar um skip válido" });
+    .status(400)
+    .json({
+      message: "É necessário repassar um skip válido"
+    });
   }
   if (!limit || isNaN(limit)) {
     return res
-      .status(400)
-      .json({ message: "É necessário repassar um limit válido" });
+    .status(400)
+    .json({
+      message: "É necessário repassar um limit válido"
+    });
   }
 
   try {
@@ -255,10 +311,14 @@ router.get("/get/user/:userId/:skip/:limit", async (req, res) => {
     const limitValue = parseInt(limit);
 
     const posts = await postSchema
-      .find({ userId, isAnonymous: false })
-      .sort({ insertAt: -1 })
-      .skip(skipValue)
-      .limit(limitValue);
+    .find({
+      userId, isAnonymous: false
+    })
+    .sort({
+      insertAt: -1
+    })
+    .skip(skipValue)
+    .limit(limitValue);
 
     if (!posts.length) {
       return res.status(404).json({
@@ -266,14 +326,15 @@ router.get("/get/user/:userId/:skip/:limit", async (req, res) => {
       });
     }
 
-    return res.status(200).json({ posts });
+    return res.status(200).json({
+      posts
+    });
   } catch (error) {
     console.error("Erro ao recuperar posts:", error);
     return res.status(500).json({
       message: "Ocorreu um erro ao recuperar os posts. Tente novamente.",
     });
-  } finally {
-  }
+  } finally {}
 });
 
 router.get("/id/:id", async (req, res) => {
@@ -281,13 +342,17 @@ router.get("/id/:id", async (req, res) => {
     const queryId = req.params.id;
 
     if (!queryId) {
-      return res.status(400).json({ message: "ID não especificado" });
+      return res.status(400).json({
+        message: "ID não especificado"
+      });
     }
 
     await dataBase.connect();
 
     // Busca o post pelo _id
-    const postFinded = await postSchema.findOne({ _id: queryId });
+    const postFinded = await postSchema.findOne({
+      _id: queryId
+    });
 
     if (!postFinded) {
       return res.status(404).json({
@@ -305,15 +370,22 @@ router.get("/id/:id", async (req, res) => {
       });
     }
 
-    return res.status(200).json({ postFinded });
+    return res.status(200).json({
+      postFinded
+    });
   } catch (error) {
     console.error("Erro ao buscar post:", error);
-    return res.status(500).json({ message: "Erro ao buscar post", error });
+    return res.status(500).json({
+      message: "Erro ao buscar post", error
+    });
   }
 });
 
 router.post("/like", async (req, res) => {
-  const { token, postId } = req.body;
+  const {
+    token,
+    postId
+  } = req.body;
 
   try {
     const decodedObj = jwt.verify(token, process.env.JWT_SECRET);
@@ -324,14 +396,18 @@ router.post("/like", async (req, res) => {
 
     if (!post) {
       return res
-        .status(404)
-        .json({ message: "Post não encontrado", found: false });
+      .status(404)
+      .json({
+        message: "Post não encontrado", found: false
+      });
     }
 
     if (post.likedBy.includes(decodedObj.user._id)) {
       return res
-        .status(400)
-        .json({ message: "Você já curtiu esse post", alreadyLiked: true });
+      .status(400)
+      .json({
+        message: "Você já curtiu esse post", alreadyLiked: true
+      });
     }
 
     post.likedBy.push(decodedObj.user._id);
@@ -346,17 +422,24 @@ router.post("/like", async (req, res) => {
   } catch (error) {
     if (error.name === "TokenExpiredError") {
       return res
-        .status(403)
-        .json({ message: "Token Expirado", validToken: false });
+      .status(403)
+      .json({
+        message: "Token Expirado", validToken: false
+      });
     }
     return res
-      .status(403)
-      .json({ message: "Token Inválido", validToken: false });
+    .status(403)
+    .json({
+      message: "Token Inválido", validToken: false
+    });
   }
 });
 
-router.post("/unlike", async (req, res) => {
-  const { token, postId } = req.body;
+router.post("/favorite", async (req, res) => {
+  const {
+    token,
+    postId
+  } = req.body;
 
   try {
     const decodedObj = jwt.verify(token, process.env.JWT_SECRET);
@@ -367,14 +450,70 @@ router.post("/unlike", async (req, res) => {
 
     if (!post) {
       return res
-        .status(404)
-        .json({ message: "Post não encontrado", found: false });
+      .status(404)
+      .json({
+        message: "Post não encontrado", found: false
+      });
+    }
+
+    if (post.favoritedBy.includes(decodedObj.user._id)) {
+      return res
+      .status(400)
+      .json({
+        message: "Você já favoritou esse post", alreadyFavorited: true
+      });
+    }
+
+    post.favoritedBy.push(decodedObj.user._id);
+    await post.save();
+
+    return res.status(200).json({
+      message: "Post favoritado com sucesso",
+      favorited: true,
+    });
+  } catch (error) {
+    if (error.name === "TokenExpiredError") {
+      return res
+      .status(403)
+      .json({
+        message: "Token Expirado", validToken: false
+      });
+    }
+    return res
+    .status(403)
+    .json({
+      message: "Token Inválido", validToken: false
+    });
+  }
+});
+
+router.post("/unlike", async (req, res) => {
+  const {
+    token,
+    postId
+  } = req.body;
+
+  try {
+    const decodedObj = jwt.verify(token, process.env.JWT_SECRET);
+
+    await dataBase.connect();
+
+    const post = await postSchema.findById(postId);
+
+    if (!post) {
+      return res
+      .status(404)
+      .json({
+        message: "Post não encontrado", found: false
+      });
     }
 
     if (!post.likedBy.includes(decodedObj.user._id)) {
       return res
-        .status(400)
-        .json({ message: "Você ainda não curtiu esse post", notLiked: true });
+      .status(400)
+      .json({
+        message: "Você ainda não curtiu esse post", notLiked: true
+      });
     }
 
     post.likedBy = post.likedBy.filter(
@@ -393,17 +532,81 @@ router.post("/unlike", async (req, res) => {
 
     if (error.name === "TokenExpiredError") {
       return res
-        .status(403)
-        .json({ message: "Token Expirado", validToken: false });
+      .status(403)
+      .json({
+        message: "Token Expirado", validToken: false
+      });
     }
     return res
+    .status(403)
+    .json({
+      message: "Token Inválido", validToken: false
+    });
+  }
+});
+
+router.post("/unfavorite", async (req, res) => {
+  const {
+    token,
+    postId
+  } = req.body;
+
+  try {
+    const decodedObj = jwt.verify(token, process.env.JWT_SECRET);
+
+    await dataBase.connect();
+
+    const post = await postSchema.findById(postId);
+
+    if (!post) {
+      return res
+      .status(404)
+      .json({
+        message: "Post não encontrado", found: false
+      });
+    }
+
+    if (!post.favoritedBy.includes(decodedObj.user._id)) {
+      return res
+      .status(400)
+      .json({
+        message: "Você ainda não favoritou esse post", notFavorited: true
+      });
+    }
+
+    post.favoritedBy = post.favoritedBy.filter(
+      (userId) => userId.toString() !== decodedObj.user._id.toString()
+    );
+    await post.save();
+
+    return res.status(200).json({
+      message: "Favoritado removido com sucesso",
+      unFavorited: true,
+    });
+  } catch (error) {
+    console.error("Erro capturado:", error);
+
+    if (error.name === "TokenExpiredError") {
+      return res
       .status(403)
-      .json({ message: "Token Inválido", validToken: false });
+      .json({
+        message: "Token Expirado", validToken: false
+      });
+    }
+    return res
+    .status(403)
+    .json({
+      message: "Token Inválido", validToken: false
+    });
   }
 });
 
 router.get("/saved/:token/:skip/:limit", async (req, res) => {
-  const { token, skip, limit } = req.params;
+  const {
+    token,
+    skip,
+    limit
+  } = req.params;
 
   try {
     const decodedObj = jwt.verify(token, process.env.JWT_SECRET);
@@ -411,48 +614,119 @@ router.get("/saved/:token/:skip/:limit", async (req, res) => {
     await dataBase.connect();
 
     const likedPosts = await postSchema
-      .find({ likedBy: decodedObj.user._id })
-      .sort({ insertAt: -1 })
-      .skip(parseInt(skip, 10))
-      .limit(parseInt(limit, 10));
+    .find({
+      likedBy: decodedObj.user._id
+    })
+    .sort({
+      insertAt: -1
+    })
+    .skip(parseInt(skip, 10))
+    .limit(parseInt(limit, 10));
 
     if (!likedPosts || likedPosts.length === 0) {
       return res
-        .status(404)
-        .json({ message: "Nenhum post curtido encontrado." });
+      .status(404)
+      .json({
+        message: "Nenhum post curtido encontrado."
+      });
     }
-    
-    return res.status(200).json({ likedPosts });
+
+    return res.status(200).json({
+      likedPosts
+    });
   } catch (error) {
     console.error("Erro ao buscar posts curtidos:", error);
 
     if (error.name === "TokenExpiredError") {
       return res
-        .status(403)
-        .json({ message: "Token Expirado", validToken: false });
+      .status(403)
+      .json({
+        message: "Token Expirado", validToken: false
+      });
     }
 
     return res
+    .status(403)
+    .json({
+      message: "Token Inválido", validToken: false
+    });
+  }
+});
+
+router.get("/favorited/:token/:skip/:limit", async (req, res) => {
+  const {
+    token,
+    skip,
+    limit
+  } = req.params;
+
+  try {
+    const decodedObj = jwt.verify(token, process.env.JWT_SECRET);
+
+    await dataBase.connect();
+
+    const favoritedPosts = await postSchema
+    .find({
+      favoritedBy: decodedObj.user._id
+    })
+    .sort({
+      insertAt: -1
+    })
+    .skip(parseInt(skip, 10))
+    .limit(parseInt(limit, 10));
+
+    if (!favoritedPosts || favoritedPosts.length === 0) {
+      return res
+      .status(404)
+      .json({
+        message: "Nenhum post favoritado encontrado."
+      });
+    }
+
+    return res.status(200).json({
+      favoritedPosts
+    });
+  } catch (error) {
+    console.error("Erro ao buscar posts favoritados:", error);
+
+    if (error.name === "TokenExpiredError") {
+      return res
       .status(403)
-      .json({ message: "Token Inválido", validToken: false });
+      .json({
+        message: "Token Expirado", validToken: false
+      });
+    }
+
+    return res
+    .status(403)
+    .json({
+      message: "Token Inválido", validToken: false
+    });
   }
 });
 
 router.delete("/deletePost", async (req, res) => {
   try {
 
-    const { token, postId } = req.body;
+    const {
+      token,
+      postId
+    } = req.body;
 
 
     if (!token) {
-      return res.status(400).json({ message: "Token é necessário" });
+      return res.status(400).json({
+        message: "Token é necessário"
+      });
     }
 
     let decodedObj;
     try {
       decodedObj = jwt.verify(token, process.env.JWT_SECRET);
     } catch (error) {
-      return res.status(403).json({ message: "Token Inválido ou Expirado" });
+      return res.status(403).json({
+        message: "Token Inválido ou Expirado"
+      });
     }
 
     await dataBase.connect();
@@ -460,20 +734,30 @@ router.delete("/deletePost", async (req, res) => {
     const post = await postSchema.findById(postId);
 
     if (!post) {
-      return res.status(404).json({ message: "Post não encontrado" });
+      return res.status(404).json({
+        message: "Post não encontrado"
+      });
     }
 
-    await Comment.deleteMany({ _id: { $in: post.comments } });
+    await Comment.deleteMany({
+      _id: {
+        $in: post.comments
+      }
+    });
 
     // Delete o post
     await postSchema.findByIdAndDelete(postId);
 
     return res
-      .status(200)
-      .json({ message: "Post e comentários deletados com sucesso", deleted: true });
+    .status(200)
+    .json({
+      message: "Post e comentários deletados com sucesso", deleted: true
+    });
   } catch (error) {
     console.error("Erro ao deletar post e comentários:", error);
-    return res.status(500).json({ message: "Erro no servidor" });
+    return res.status(500).json({
+      message: "Erro no servidor"
+    });
   }
 });
 
