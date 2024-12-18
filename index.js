@@ -87,6 +87,7 @@ io.on("connection", (socket) => {
       const roomName = [senderId, receiverId].sort().join("-");
       socket.join(roomName);
       chatRooms[socket.id] = roomName;
+      socket.emit("userJoined", receiverId);
     } catch (error) {
       console.error("Erro ao entrar na sala", error);
     }
