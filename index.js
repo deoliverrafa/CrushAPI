@@ -82,16 +82,16 @@ io.on("connection", (socket) => {
     socket.emit("roomJoined", roomId);
   });
 
-  // // Entrar na sala de chat
-  // socket.on("joinRoom", ({ senderId, receiverId }) => {
-  //   try {
-  //     const roomName = [senderId, receiverId].sort().join("-");
-  //     socket.join(roomName);
-  //     chatRooms[socket.id] = roomName;
-  //   } catch (error) {
-  //     console.error("Erro ao entrar na sala", error);
-  //   }
-  // });
+  // Entrar na sala de chat
+  socket.on("joinRoom", ({ senderId, receiverId }) => {
+    try {
+      const roomName = [senderId, receiverId].sort().join("-");
+      socket.join(roomName);
+      chatRooms[socket.id] = roomName;
+    } catch (error) {
+      console.error("Erro ao entrar na sala", error);
+    }
+  });
 
   socket.on("sendMessage", async (message) => {
     try {
@@ -102,40 +102,6 @@ io.on("connection", (socket) => {
       console.error("Erro ao salvar ou enviar mensagem:", error);
     }
   });
-
-  // socket.on("markAsRead", async ({ senderId, receiverId }) => {
-  //   try {
-  //     await Message.updateMany(
-  //       { senderId, receiverId, status: "sent" },
-  //       { $set: { status: "read" } }
-  //     );
-
-  //     io.to(senderId).emit("messagesUpdated", { receiverId });
-  //   } catch (error) {
-  //     console.error("Erro ao marcar mensagens como lidas", error);
-  //   }
-  // });
-
-  // socket.on("messageRead", async ({ senderId, receiverId }) => {
-  //   try {
-  //     const updatedMessages = await Message.updateMany(
-  //       {
-  //         senderId,
-  //         receiverId,
-  //         status: { $in: ["sent", "received"] },
-  //       },
-  //       { status: "read" }
-  //     );
-  //     if (updatedMessages.modifiedCount > 0) {
-  //       io.to(userSockets[senderId]).emit("messagesUpdated", {
-  //         receiverId,
-  //         status: "read",
-  //       });
-  //     }
-  //   } catch (err) {
-  //     console.error("Erro ao atualizar status para 'read':", err);
-  //   }
-  // });
 
   socket.on("messageReceived", async (messageId) => {
     try {
@@ -154,27 +120,6 @@ io.on("connection", (socket) => {
       console.error("Erro ao atualizar status para 'received':", err);
     }
   });
-
-  // socket.on("messageRead", async (messageId) => {
-  //   try {
-  //     console.log("Id mensagem",messageId);
-
-  //     const message = await Message.findByIdAndUpdate(
-  //       messageId,
-  //       { status: "read" },
-  //       { new: true }
-  //     );
-  //     console.log(message)
-  //     if (message) {
-  //       io.to(userSockets[message.senderId]).emit("messageReadStatus", {
-  //         messageId: message._id,
-  //         status: "read",
-  //       });
-  //     }
-  //   } catch (err) {
-  //     console.error("Erro ao atualizar status para 'read':", err);
-  //   }
-  // });
 
   socket.on("markMessagesAsRead", async ({ senderId, receiverId }) => {
     const roomName = [senderId, receiverId].sort().join("-");
@@ -199,18 +144,78 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("leaveRoom", ({ senderId, receiverId }) => {
+    const room = `${senderId}-${receiverId}`;
+    socket.leave(room);
+    console.log(`Usuário saiu da sala ${room}`);
+  });
+
   // Remover o usuário do mapeamento quando desconectar
   socket.on("disconnect", () => {
     for (const [userId, sockets] of Object.entries(userSockets)) {
       userSockets[userId] = sockets.filter((id) => id !== socket.id);
       if (userSockets[userId].length === 0) {
         delete userSockets[userId];
+        io.emit("userDisconnected", { userId });
       }
     }
-    delete chatRooms[socket.id];
   });
 });
 
+// socket.on("markAsRead", async ({ senderId, receiverId }) => {
+//   try {
+//     await Message.updateMany(
+//       { senderId, receiverId, status: "sent" },
+//       { $set: { status: "read" } }
+//     );
+
+//     io.to(senderId).emit("messagesUpdated", { receiverId });
+//   } catch (error) {
+//     console.error("Erro ao marcar mensagens como lidas", error);
+//   }
+// });
+
+// socket.on("messageRead", async ({ senderId, receiverId }) => {
+//   try {
+//     const updatedMessages = await Message.updateMany(
+//       {
+//         senderId,
+//         receiverId,
+//         status: { $in: ["sent", "received"] },
+//       },
+//       { status: "read" }
+//     );
+//     if (updatedMessages.modifiedCount > 0) {
+//       io.to(userSockets[senderId]).emit("messagesUpdated", {
+//         receiverId,
+//         status: "read",
+//       });
+//     }
+//   } catch (err) {
+//     console.error("Erro ao atualizar status para 'read':", err);
+//   }
+// });
+
+// socket.on("messageRead", async (messageId) => {
+//   try {
+//     console.log("Id mensagem",messageId);
+
+//     const message = await Message.findByIdAndUpdate(
+//       messageId,
+//       { status: "read" },
+//       { new: true }
+//     );
+//     console.log(message)
+//     if (message) {
+//       io.to(userSockets[message.senderId]).emit("messageReadStatus", {
+//         messageId: message._id,
+//         status: "read",
+//       });
+//     }
+//   } catch (err) {
+//     console.error("Erro ao atualizar status para 'read':", err);
+//   }
+// });
 // Inicialização do servidor
 const PORT = process.env.PORT || 4040;
 server.listen(PORT, () => {
