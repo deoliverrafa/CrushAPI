@@ -31,6 +31,10 @@ const postSchema = new mongoose.Schema({
     type: [ObjectId],
     required: false,
   },
+  favoritedBy: {
+    type: [ObjectId],
+    required: false,
+  },
   comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
   commentCount: {
     type: Number,
