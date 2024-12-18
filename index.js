@@ -82,16 +82,16 @@ io.on("connection", (socket) => {
     socket.emit("roomJoined", roomId);
   });
 
-  // Entrar na sala de chat
-  socket.on("joinRoom", ({ senderId, receiverId }) => {
-    try {
-      const roomName = [senderId, receiverId].sort().join("-");
-      socket.join(roomName);
-      chatRooms[socket.id] = roomName;
-    } catch (error) {
-      console.error("Erro ao entrar na sala", error);
-    }
-  });
+  // // Entrar na sala de chat
+  // socket.on("joinRoom", ({ senderId, receiverId }) => {
+  //   try {
+  //     const roomName = [senderId, receiverId].sort().join("-");
+  //     socket.join(roomName);
+  //     chatRooms[socket.id] = roomName;
+  //   } catch (error) {
+  //     console.error("Erro ao entrar na sala", error);
+  //   }
+  // });
 
   socket.on("sendMessage", async (message) => {
     try {
