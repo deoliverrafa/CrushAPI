@@ -169,12 +169,12 @@ router.post("/updateBanner", multer().single("banner"), async (req, res) => {
 });
 
 router.post(
-  "/changeNameCampusCurso/:token",
+  "/changeInfo/:token",
   multer().none(),
   async (req, res) => {
     try {
       const token = req.params.token;
-      const { nickname, campus, curso, userName } = req.body;
+      const { nickname, campus, curso, userName, birthdaydata, gender, bio } = req.body;
 
       if (!token) {
         return res.status(400).json({
@@ -214,6 +214,9 @@ router.post(
             campus: campus,
             curso: curso,
             userName: userName,
+            birthdaydata: birthdaydata,
+            gender: gender,
+            bio: bio
           },
         },
         { new: true } // Retorna o documento atualizado
@@ -319,10 +322,10 @@ router.post("/changePassword/:token", multer().none(), async (req, res) => {
   }
 });
 
-router.post("/changeEmail/:token", multer().none(), async (req, res) => {
+router.post("/changeLink/:token", multer().none(), async (req, res) => {
   try {
     const token = req.params.token;
-    const { email } = req.body;
+    const { link, instagram, facebook, twitter } = req.body;
 
     if (!token) {
       return res
@@ -330,10 +333,10 @@ router.post("/changeEmail/:token", multer().none(), async (req, res) => {
         .json({ message: "É preciso especificar um token", validToken: false });
     }
 
-    if (!email) {
+    if (!link) {
       return res
         .status(404)
-        .json({ message: "Campo 'email' faltando", updated: false });
+        .json({ message: "Campo 'link' faltando", updated: false });
     }
 
     let decodedObj;
@@ -357,7 +360,10 @@ router.post("/changeEmail/:token", multer().none(), async (req, res) => {
       { _id: decodedObj.user._id }, // Filtro de busca
       {
         $set: {
-          email: email,
+          link: link,
+          instagram: instagram,
+          facebook: facebook,
+          twitter: twitter
         },
       },
       { new: true } // Retorna o documento atualizado
@@ -373,184 +379,7 @@ router.post("/changeEmail/:token", multer().none(), async (req, res) => {
       .status(200)
       .json({ message: "Atualizado com sucesso", updated: true });
   } catch (error) {
-    console.error("Erro ao mudar email", error);
-    return res.status(500).json({ message: "Erro ao atualizar dados", error });
-  }
-});
-
-router.post("/changeBirthday/:token", multer().none(), async (req, res) => {
-  try {
-    const token = req.params.token;
-    const { birthdaydata } = req.body;
-
-    if (!token) {
-      return res
-        .status(400)
-        .json({ message: "É preciso especificar um token", validToken: false });
-    }
-
-    if (!birthdaydata) {
-      return res
-        .status(404)
-        .json({ message: "Campo 'birthdaydata' faltando", updated: false });
-    }
-
-    let decodedObj;
-
-    try {
-      decodedObj = jwt.verify(token, process.env.JWT_SECRET);
-    } catch (error) {
-      if (error.name === "TokenExpiredError") {
-        return res
-          .status(403)
-          .json({ message: "Token Expirado", validToken: false });
-      }
-      return res
-        .status(403)
-        .json({ message: "Token Inválido", validToken: false });
-    }
-
-    await dataBase.connect();
-
-    const userFound = await userSchema.findOneAndUpdate(
-      { _id: decodedObj.user._id }, // Filtro de busca
-      {
-        $set: {
-          birthdaydata: birthdaydata,
-        },
-      },
-      { new: true } // Retorna o documento atualizado
-    );
-
-    if (!userFound) {
-      return res
-        .status(400)
-        .json({ message: "Erro ao procurar usuário", updated: false });
-    }
-
-    return res
-      .status(200)
-      .json({ message: "Atualizado com sucesso", updated: true });
-  } catch (error) {
-    console.error("Erro ao mudar gênero", error);
-    return res.status(500).json({ message: "Erro ao atualizar dados", error });
-  }
-});
-
-router.post("/changeGender/:token", multer().none(), async (req, res) => {
-  try {
-    const token = req.params.token;
-    const { gender } = req.body;
-
-    if (!token) {
-      return res
-        .status(400)
-        .json({ message: "É preciso especificar um token", validToken: false });
-    }
-
-    if (!gender) {
-      return res
-        .status(404)
-        .json({ message: "Campo 'gender' faltando", updated: false });
-    }
-
-    let decodedObj;
-
-    try {
-      decodedObj = jwt.verify(token, process.env.JWT_SECRET);
-    } catch (error) {
-      if (error.name === "TokenExpiredError") {
-        return res
-          .status(403)
-          .json({ message: "Token Expirado", validToken: false });
-      }
-      return res
-        .status(403)
-        .json({ message: "Token Inválido", validToken: false });
-    }
-
-    await dataBase.connect();
-
-    const userFound = await userSchema.findOneAndUpdate(
-      { _id: decodedObj.user._id }, // Filtro de busca
-      {
-        $set: {
-          gender: gender,
-        },
-      },
-      { new: true } // Retorna o documento atualizado
-    );
-
-    if (!userFound) {
-      return res
-        .status(400)
-        .json({ message: "Erro ao procurar usuário", updated: false });
-    }
-
-    return res
-      .status(200)
-      .json({ message: "Atualizado com sucesso", updated: true });
-  } catch (error) {
-    console.error("Erro ao mudar gênero", error);
-    return res.status(500).json({ message: "Erro ao atualizar dados", error });
-  }
-});
-
-router.post("/changeBio/:token", multer().none(), async (req, res) => {
-  try {
-    const token = req.params.token;
-    const { bio } = req.body;
-
-    if (!token) {
-      return res
-        .status(400)
-        .json({ message: "É preciso especificar um token", validToken: false });
-    }
-
-    if (!bio) {
-      return res
-        .status(404)
-        .json({ message: "Campo 'bio' faltando", updated: false });
-    }
-
-    let decodedObj;
-
-    try {
-      decodedObj = jwt.verify(token, process.env.JWT_SECRET);
-    } catch (error) {
-      if (error.name === "TokenExpiredError") {
-        return res
-          .status(403)
-          .json({ message: "Token Expirado", validToken: false });
-      }
-      return res
-        .status(403)
-        .json({ message: "Token Inválido", validToken: false });
-    }
-
-    await dataBase.connect();
-
-    const userFound = await userSchema.findOneAndUpdate(
-      { _id: decodedObj.user._id }, // Filtro de busca
-      {
-        $set: {
-          bio: bio,
-        },
-      },
-      { new: true } // Retorna o documento atualizado
-    );
-
-    if (!userFound) {
-      return res
-        .status(400)
-        .json({ message: "Erro ao procurar usuário", updated: false });
-    }
-
-    return res
-      .status(200)
-      .json({ message: "Atualizado com sucesso", updated: true });
-  } catch (error) {
-    console.error("Erro ao mudar bio", error);
+    console.error("Erro ao mudar links", error);
     return res.status(500).json({ message: "Erro ao atualizar dados", error });
   }
 });
