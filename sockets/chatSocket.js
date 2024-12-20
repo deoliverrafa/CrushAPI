@@ -9,11 +9,19 @@ export default function chatSocket(io, socket) {
     socket.emit("roomJoined", roomId);
   });
 
+  socket.on("joinRoom", ({ senderId, receiverId }) => {
+    try {
+      const roomName = [senderId, receiverId].sort().join("-");
+      socket.join(roomName);
+      chatRooms[socket.id] = roomName;
+    } catch (error) {
+      console.error("Erro ao entrar na sala", error);
+    }
+  });
+
   socket.on("sendMessage", async (message) => {
     try {
       const roomId = [message.senderId, message.receiverId].sort().join("_");
-
-      console.log(message);
       
       const messageToSave = {
         ...message,
@@ -34,6 +42,7 @@ export default function chatSocket(io, socket) {
       { senderId: receiverId, receiverId: senderId, status: "received" },
       { status: "read" }
     );
+
     io.to(roomName).emit("messagesUpdated", {
       receiverId: senderId,
       status: "read",
