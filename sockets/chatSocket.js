@@ -12,7 +12,15 @@ export default function chatSocket(io, socket) {
   socket.on("sendMessage", async (message) => {
     try {
       const roomId = [message.senderId, message.receiverId].sort().join("_");
-      const savedMessage = await Message.create(message);
+
+      console.log(message);
+      
+      const messageToSave = {
+        ...message,
+        status: 'received'
+      }
+
+      const savedMessage = await Message.create(messageToSave);
       
       io.to(roomId).emit("newMessage", savedMessage);
     } catch (error) {
