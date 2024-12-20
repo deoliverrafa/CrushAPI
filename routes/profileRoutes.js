@@ -6,9 +6,9 @@ import bcrypt from "bcrypt";
 
 const router = express.Router();
 
-import getConnection from "./connection.js";
-import userSchema from "./userSchema.js";
-import cloudinary from "./cloudinary.js";
+import getConnection from "../utils/connection.js";
+import userSchema from "../schemas/userSchema.js";
+import cloudinary from "../cloudinary.js";
 
 const dataBase = new getConnection();
 

@@ -1,10 +1,10 @@
 import express from "express";
 import bcrypt from "bcrypt";
-import userSchema from "./userSchema.js";
-import getConnection from "./connection.js";
+import userSchema from "../schemas/userSchema.js";
+import getConnection from "../utils/connection.js";
 import jwt from "jsonwebtoken";
-import generateVerificationToken from "./generateVerificationToken.js";
-import { sendVerificationEmail } from "./sendEmailVerification.js";
+import generateVerificationToken from "../utils/generateVerificationToken.js";
+import { sendVerificationEmail } from "../utils/sendEmailVerification.js";
 
 const router = express.Router();
 const dataBase = new getConnection();

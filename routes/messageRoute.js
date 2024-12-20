@@ -1,5 +1,5 @@
 import express from 'express'
-import Message from './messageSchema.js'
+import Message from '../schemas/messageSchema.js'
 const router = express.Router();
 
 // Rota para enviar mensagem

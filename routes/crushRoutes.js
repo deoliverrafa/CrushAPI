@@ -1,6 +1,6 @@
 import express from "express";
-import getConnection from "./connection.js";
-import userSchema from "./userSchema.js";
+import getConnection from "../utils/connection.js";
+import userSchema from "../schemas/userSchema.js";
 
 const router = express.Router();
 const dataBase = new getConnection();

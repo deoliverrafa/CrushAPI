@@ -6,11 +6,11 @@ import multer from "multer";
 import jwt from "jsonwebtoken";
 
 // Local Imports
-import cloudinary from "./cloudinary.js";
-import userSchema from "./userSchema.js";
-import postSchema from "./postSchema.js";
-import getConnection from "./connection.js";
-import Comment from "./commentSchema.js";
+import cloudinary from "../cloudinary.js";
+import userSchema from "../schemas/userSchema.js";
+import postSchema from "../schemas/postSchema.js";
+import getConnection from "../utils/connection.js";
+import Comment from "../schemas/commentSchema.js";
 
 const router = express.Router();
 const dataBase = new getConnection();

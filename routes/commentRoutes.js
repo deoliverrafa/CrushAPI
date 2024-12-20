@@ -1,7 +1,7 @@
-import getConnection from "./connection.js";
-import postSchema from "./postSchema.js";
-import commentSchema from "./commentSchema.js";
-import userSchema from "./userSchema.js";
+import getConnection from "../utils/connection.js";
+import postSchema from "../schemas/postSchema.js";
+import commentSchema from "../schemas/commentSchema.js";
+import userSchema from "../schemas/userSchema.js";
 
 import express from "express";
 import jwt from "jsonwebtoken";
