@@ -1,4 +1,5 @@
 import express from "express";
+import axios from "axios";
 import bcrypt from "bcrypt";
 import userSchema from "../schemas/userSchema.js";
 import getConnection from "../utils/connection.js";
@@ -11,14 +12,36 @@ const dataBase = new getConnection();
 
 router.post("/login", async (req, res) => {
   try {
-    const { nickname, password } = req.body;
+    const { nickname, password, captcha } = req.body;
 
     if (!nickname || !password || nickname === "" || password === "") {
       return res
         .status(400)
         .json({ message: "Preencha todos os campos.", logged: false });
     }
-
+    
+    if (!captcha) {
+      return res.status(400).json({ message: "CAPTCHA não preenchido.", logged: false });
+    }
+    
+    const secretKey = process.env.RECAPTCHA_SECRET_KEY;
+    const captchaVerification = await axios.post(
+      `https://www.google.com/recaptcha/api/siteverify`,
+      null,
+      {
+        params: {
+          secret: secretKey,
+          response: captcha,
+        },
+      }
+    );
+    
+    if (!captchaVerification.data.success) {
+      return res
+        .status(400)
+        .json({ message: "Falha na verificação do CAPTCHA.", logged: false });
+    }
+    
     await dataBase.connect();
 
     // Busca por nickname ou email
@@ -30,6 +53,15 @@ router.post("/login", async (req, res) => {
       return res
         .status(400)
         .json({ message: "Usuário ou e-mail não encontrado.", logged: false });
+    }
+    
+    if (!userFinded.emailVerified) {
+      return res
+        .status(403)
+        .json({
+          message: "E-mail ainda não verificado. Verifique seu e-mail para prosseguir.",
+          logged: false,
+        });
     }
 
     const comparePassword = await bcrypt.compare(password, userFinded.password);
