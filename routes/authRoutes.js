@@ -14,37 +14,34 @@ router.post("/login", async (req, res) => {
   try {
     const { nickname, password, captcha } = req.body;
 
-    if (!nickname || !password || nickname === "" || password === "") {
+    if (!nickname || !password) {
       return res
         .status(400)
         .json({ message: "Preencha todos os campos.", logged: false });
     }
-    
+
     if (!captcha) {
-      return res.status(400).json({ message: "CAPTCHA não preenchido.", logged: false });
+      return res
+        .status(400)
+        .json({ message: "CAPTCHA não preenchido.", logged: false });
     }
-    
+
     const secretKey = process.env.RECAPTCHA_SECRET_KEY;
     const captchaVerification = await axios.post(
       `https://www.google.com/recaptcha/api/siteverify`,
       null,
-      {
-        params: {
-          secret: secretKey,
-          response: captcha,
-        },
-      }
+      { params: { secret: secretKey, response: captcha } }
     );
-    
+
     if (!captchaVerification.data.success) {
       return res
         .status(400)
         .json({ message: "Falha na verificação do CAPTCHA.", logged: false });
     }
-    
+
     await dataBase.connect();
 
-    // Busca por nickname ou email
+    // Buscar usuário por nickname ou e-mail
     const userFinded = await userSchema.findOne({
       $or: [{ nickname }, { email: nickname }],
     });
@@ -54,16 +51,16 @@ router.post("/login", async (req, res) => {
         .status(400)
         .json({ message: "Usuário ou e-mail não encontrado.", logged: false });
     }
-    
+
+    // Bloquear login se o e-mail não estiver verificado
     if (!userFinded.emailVerified) {
-      return res
-        .status(403)
-        .json({
-          message: "E-mail ainda não verificado. Verifique seu e-mail para prosseguir.",
-          logged: false,
-        });
+      return res.status(403).json({
+        message: "E-mail ainda não verificado. Verifique seu e-mail para prosseguir.",
+        logged: false,
+      });
     }
 
+    // Verificar senha
     const comparePassword = await bcrypt.compare(password, userFinded.password);
 
     if (!comparePassword) {
@@ -127,6 +124,7 @@ router.post("/register", async (req, res) => {
       password: hashedPassword,
       userName,
       type,
+      emailVerified: false,
     });
 
     await newUser.save();
@@ -184,7 +182,7 @@ router.get("/verify-email", async (req, res) => {
   const { token } = req.query;
 
   try {
-    // Procure o usuário pelo token e verifique se o token ainda está válido
+    // Procure o usuário pelo token e verifique se ele não expirou
     await dataBase.connect();
     const user = await userSchema.findOne({
       emailVerificationToken: token,
@@ -192,18 +190,20 @@ router.get("/verify-email", async (req, res) => {
     });
 
     if (!user) {
-      return res.status(400).send("Token inválido ou expirado.");
+      return res.status(400).json({ message: "Token inválido ou expirado." });
     }
 
+    // Atualize o campo emailVerified e limpe os dados de verificação
     user.emailVerified = true;
     user.emailVerificationToken = undefined;
     user.emailVerificationExpires = undefined;
+
     await user.save();
 
-    res.send("E-mail verificado com sucesso!");
+    res.status(200).json({ message: "E-mail verificado com sucesso!" });
   } catch (error) {
-    console.error(error);
-    res.status(500).send("Erro ao verificar o e-mail.");
+    console.error("Erro ao verificar e-mail:", error);
+    res.status(500).json({ message: "Erro interno ao verificar o e-mail." });
   }
 });
 
