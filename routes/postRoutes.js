@@ -75,7 +75,7 @@ router.post("/publish/:token", upload.array("photos", 5), async (req, res) => {
     } = req.body;
     const photos = req.files;
 
-    if (!content) {
+    if (!content && !photos) {
       return res
       .status(400)
       .json({
