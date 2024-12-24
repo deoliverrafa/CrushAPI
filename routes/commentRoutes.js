@@ -264,8 +264,6 @@ router.post("/reply", async (req, res) => {
     }
 
     const post = await postSchema.findById(postId);
-
-    console.log("Outro",post);
     
     if (!post) {
       return res.status(404).json({
