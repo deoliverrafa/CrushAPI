@@ -55,8 +55,11 @@ router.post("/login", async (req, res) => {
     // Bloquear login se o e-mail não estiver verificado
     if (!userFinded.emailVerified) {
       return res.status(403).json({
-        message: "E-mail ainda não verificado. Verifique seu e-mail para prosseguir.",
+        message:
+          "E-mail ainda não verificado. Verifique seu e-mail para prosseguir.",
         logged: false,
+        emailVerified: false,
+        email: userFinded.email,  
       });
     }
 
@@ -127,13 +130,10 @@ router.post("/register", async (req, res) => {
       emailVerified: false,
     });
 
-    await newUser.save();
-
     const token = generateVerificationToken();
     newUser.emailVerificationToken = token;
     newUser.emailVerificationExpires = Date.now() + 3600000; // 1 hora a partir de agora
     await newUser.save();
-
     // Envie o e-mail de verificação
     await sendVerificationEmail(newUser.email, token);
 
@@ -150,12 +150,14 @@ router.post("/register", async (req, res) => {
   }
 });
 
-router.get("/email", async (req, res) => {
+router.get("/email/:email", async (req, res) => {
   try {
     await dataBase.connect();
 
-    const user = await userSchema.findOne({ email: req.query.email });
-
+    const email = req.params.email
+    
+    const user = await userSchema.findOne({ email });
+    
     if (!user) {
       return res.status(404).send("Usuário não encontrado");
     }
@@ -169,7 +171,10 @@ router.get("/email", async (req, res) => {
     // Envie o e-mail de verificação
     await sendVerificationEmail(user.email, token);
 
-    res.send("E-mail de verificação enviado com sucesso!");
+    res.send({
+      message: "E-mail de verificação enviado com sucesso!",
+      sendEmail: true,
+    });
   } catch (error) {
     console.error(error);
     res
@@ -190,9 +195,11 @@ router.get("/verify-email", async (req, res) => {
     });
 
     if (!user) {
-      return res.status(400).json({ message: "Token inválido ou expirado." });
+      return res
+        .status(400)
+        .json({ message: "Token inválido ou expirado.", verified: false });
     }
-
+    
     // Atualize o campo emailVerified e limpe os dados de verificação
     user.emailVerified = true;
     user.emailVerificationToken = undefined;
@@ -200,7 +207,7 @@ router.get("/verify-email", async (req, res) => {
 
     await user.save();
 
-    res.status(200).json({ message: "E-mail verificado com sucesso!" });
+    res.status(200).redirect(`${process.env.SERVIDOR_FRONTEND}/auth/verified`);
   } catch (error) {
     console.error("Erro ao verificar e-mail:", error);
     res.status(500).json({ message: "Erro interno ao verificar o e-mail." });
